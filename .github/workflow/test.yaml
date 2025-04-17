@@ -1,0 +1,11 @@
+name: Test on LoongArch
+
+on: [push]
+
+jobs:
+  loongarch-job:
+    runs-on: [loongarch64]
+    steps:
+      - name: Hello from LoongArch
+        run: uname -a
+
