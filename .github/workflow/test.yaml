@@ -1,10 +1,10 @@
 name: Test on LoongArch
 
-on: [push]
+on: push
 
 jobs:
   loongarch-job:
-    runs-on: [loongarch64]
+    runs-on: self-hosted
     steps:
       - name: Hello from LoongArch
         run: uname -a
