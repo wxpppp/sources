@@ -16,7 +16,7 @@ jobs:
   download:
     runs-on: self-hosted
     steps:
-      - uses: wxpppp/source@main
+      - uses: wxpppp/sources@main
         with:
           name: ${{ github.event.inputs.name }}
           version: ${{ github.event.inputs.version }}
