@@ -18,6 +18,7 @@ runs:
   using: composite
   steps:
     - name: Download from pypi
+      shell: bash
       if: ${{ inputs.platform == 'pypi' }}
       run: |
         DOWNLOAD_VERSION="${{ inputs.version }}"
@@ -30,6 +31,7 @@ runs:
         wget $DOWNLOAD_URL
 
     - name: Download from github
+      shell: bash
       if: ${{ inputs.platform == 'github' }}
       run: |
         DOWNLOAD_VERSION="${{ inputs.version }}"
