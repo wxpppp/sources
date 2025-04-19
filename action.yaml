@@ -1,4 +1,4 @@
-name 'Download Source'
+name: 'Download Source'
 description: 'Download source from pypi or github'
 
 inputs:
