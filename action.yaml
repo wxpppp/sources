@@ -35,12 +35,13 @@ runs:
       shell: bash
       if: ${{ inputs.platform == 'github' }}
       run: |
-        DOWNLOAD_NAME="${{ inputs.name }}"
+        DOWNLOAD_REPO="${{ inputs.name }}"
+        DOWNLOAD_NAME="$(echo ${DOWNLOAD_REPO} | cut -d '/' -f2)"
         DOWNLOAD_VERSION="${{ inputs.version }}"
-        DOWNLOAD_URL="https://github.com/${DOWNLOAD_NAME}/archive/refs/tags/${DOWNLOAD_VERSION}.tar.gz"
+        DOWNLOAD_URL="https://github.com/${DOWNLOAD_REPO}/archive/refs/tags/${DOWNLOAD_VERSION}.tar.gz"
         if [[ "${DOWNLOAD_VERSION}" == "latest" ]]; then
-          DOWNLOAD_URL="https://github.com/${DOWNLOAD_NAME}/archive/refs/heads/main.tar.gz"
+          DOWNLOAD_URL="https://github.com/${DOWNLOAD_REPO}/archive/refs/heads/main.tar.gz"
         fi
         echo "download version: ${DOWNLOAD_VERSION}"
         echo "download url: ${DOWNLOAD_URL}"
-        wget -q -O ${DOWNLOAD_NAME}-${DOWNLOAD_VERSION} ${DOWNLOAD_URL}
+        wget -q -O ${DOWNLOAD_NAME}-${DOWNLOAD_VERSION}.tar.gz ${DOWNLOAD_URL}
