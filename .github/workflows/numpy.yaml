@@ -1,0 +1,28 @@
+name: build numpy wheel
+
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        required: false
+        default: 'latest'
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - name: download source
+        uses: wxpppp/sources@main
+        with:
+          name: numpy
+          version: ${{ github.event.inputs.version }}
+
+      - name: extract numpy
+        run: |
+          tar -xf $DOWNLOAD_NAME
+          ls -l
+        
+
+
+
