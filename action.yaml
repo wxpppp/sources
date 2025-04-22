@@ -50,9 +50,3 @@ runs:
         wget -qO- ${DOWNLOAD_URL} | tar -zx --strip-components=1
         echo "DOWNLOAD_NAME=${DOWNLOAD_NAME}-${DOWNLOAD_VERSION}" >> $GITHUB_ENV
 
-  post:
-    - name: Clean downloaded files
-      shell: bash
-      run: |
-        ls
-
