@@ -21,7 +21,7 @@ jobs:
       - name: Clean up
         if: always()
         run: |
-          ls
+          rm -r ./*
           
         
 
