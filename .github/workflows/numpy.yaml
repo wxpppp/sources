@@ -21,7 +21,7 @@ jobs:
       - name: extract numpy
         run: |
           ls -l
-          tar -zx numpy.tar.gz
+          tar -xf numpy.tar.gz
           ls -l
         
 
