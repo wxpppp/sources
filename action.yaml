@@ -30,7 +30,9 @@ runs:
         echo "download version: ${DOWNLOAD_VERSION}"
         echo "download url: ${DOWNLOAD_URL}"
         #wget -qO- ${DOWNLOAD_URL} | tar -zx --strip-components=1
-        wget -q -O ${DOWNLOAD_NAME}.tar.gz ${DOWNLOAD_URL}
+        #wget -q -O ${DOWNLOAD_NAME}.tar.gz ${DOWNLOAD_URL}
+        wget -q ${DOWNLOAD_URL}
+        echo "DOWNLOAD_NAME=${DOWNLOAD_NAME}-${DOWNLOAD_VERSION}" >> $GITHUB_ENV
 
     - name: Download from github
       shell: bash
@@ -45,5 +47,6 @@ runs:
         fi
         echo "download version: ${DOWNLOAD_VERSION}"
         echo "download url: ${DOWNLOAD_URL}"
-        #wget -q -O ${DOWNLOAD_NAME}-${DOWNLOAD_VERSION}.tar.gz ${DOWNLOAD_URL}
-        wget -q -O ${DOWNLOAD_NAME}.tar.gz ${DOWNLOAD_URL}
+        wget -q -O ${DOWNLOAD_NAME}-${DOWNLOAD_VERSION}.tar.gz ${DOWNLOAD_URL}
+        #wget -q -O ${DOWNLOAD_NAME}.tar.gz ${DOWNLOAD_URL}
+        echo "DOWNLOAD_NAME=${DOWNLOAD_NAME}-${DOWNLOAD_VERSION}" >> $GITHUB_ENV
