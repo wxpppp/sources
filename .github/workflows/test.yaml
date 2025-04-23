@@ -1,6 +1,7 @@
 name: Test on LoongArch
 
-on: push
+on: 
+  workflow_dispatch:
 
 jobs:
   loongarch-job:

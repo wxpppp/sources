@@ -25,6 +25,7 @@ jobs:
           CIBW_ARCHS: "loongarch64"
           CIBW_BUILD: "*-manylinux_loongarch64"
           CIBW_TEST_SKIP: "*"
+          PIP_INDEX_URL: "http://lpypi.loongnix.cn/loongson/pypi/+simple"
 
       - name: Clean up
         if: always()
