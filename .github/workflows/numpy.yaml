@@ -19,7 +19,8 @@ jobs:
           version: ${{ github.event.inputs.version }}
 
       - name: Build wheel
-        uses: wxpppp/cibuildwheel@2.22.0-loongarch64
+        run: |
+          cibuildwheel
         env:
           CIBW_ARCHS: "loongarch64"
           CIBW_BUILD: "*-manylinux_loongarch64"
