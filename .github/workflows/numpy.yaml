@@ -31,10 +31,18 @@ jobs:
             PIP_INDEX_URL
             PIP_EXTRA_INDEX_URL
 
+      - name: Upload wheels
+        run: |
+          ls wheelhouse/*.whl || exit 0
+          twine upload --repository-url https://lpypi.loongnix.cn/loongson/pypi wheelhouse/*.whl
+        env:
+          TWINE_USERNAME: ${{ secrets.INDEX_NAME  }}
+          TWINE_PASSWORD: ${{ secrets.INDEX_TOKEN }}
+
       - name: Clean up
         if: always()
         run: |
-          ls
+          rm -r *
           
         
 
