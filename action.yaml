@@ -40,8 +40,8 @@ runs:
         DOWNLOAD_REPO="${{ inputs.name }}"
         DOWNLOAD_NAME="$(echo ${DOWNLOAD_REPO} | cut -d '/' -f2)"
         DOWNLOAD_VERSION="${{ inputs.version }}"
-        if [[ "${DOWNLOAD_VERSION}" == "release" ]]
-          DOWNLOAD_VERSION="$(curl -s https://api.github.com/repos/${DOWNLOAD_REPO}/release/latest | jq -r ".tag_name")"
+        if [[ "${DOWNLOAD_VERSION}" == "release" ]]; then
+          DOWNLOAD_VERSION="$(curl -s https://api.github.com/repos/${DOWNLOAD_REPO}/releases/latest | jq -r ".tag_name")"
         fi
         DOWNLOAD_URL="https://github.com/${DOWNLOAD_REPO}/archive/refs/tags/${DOWNLOAD_VERSION}.tar.gz"
         if [[ "${DOWNLOAD_VERSION}" == "latest" ]]; then
