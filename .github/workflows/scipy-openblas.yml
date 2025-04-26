@@ -147,6 +147,6 @@ jobs:
       run: |
         ls dist/*.whl || exit 0
         twine upload --non-interactive --disable-progress-bar --repository-url https://lpypi.loongnix.cn/loongson/pypi dist/*.whl
-        env:
+      env:
           TWINE_USERNAME: ${{ secrets.INDEX_NAME }}
           TWINE_PASSWORD: ${{ secrets.INDEX_TOKEN }}
