@@ -1,0 +1,17 @@
+name: test upload
+
+on:
+  workflow_dispatch:
+
+
+jobs:
+  upload:
+    runs-on: loongarch64-abi2.0
+    steps:
+      - name: Upload test
+        run: |
+          ls test/*.whl || exit 0
+          twine upload --repository-url https://lpypi.loongnix.cn/loongson/pypi test/*.whl
+        env:
+          TWINE_USERNAME: ${{ secrets.INDEX_NAME }}
+          TWINE_PASSWORD: ${{ secrets.INDEX_TOKEN }}
