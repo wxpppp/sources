@@ -61,12 +61,12 @@ jobs:
 
         openblas_commit=$(echo ${version} | awk -F. '{print $1"."$2"."$3}')
 
-        if curl -s "${url}" | grep ${VERSION} | grep -q ${PLATFORM}; then
+        if curl -s "${url}" | grep ${version} | grep -q ${platform}; then
             echo "SKIP=true" >> $GITHUB_ENV
-            echo "${PLATFORM} wheels already exists."
+            echo "${platform} wheels already exists."
         else
             echo "SKIP=false" >> $GITHUB_ENV
-            echo "${PLATFORM} wheels not found, continue building"
+            echo "${platform} wheels not found, continue building"
         fi
 
         echo "VERSION=${version}" >> $GITHUB_ENV
@@ -77,7 +77,7 @@ jobs:
     - name: Clean workspace
       if: ${{ env.SKIP != 'true' }}
       run: |
-        safe-rm -rf ${{ github.workspace }}/* ${{ github.workspace }}/.*
+        safe-rm -rf * .*
         
     - name: Download source
       if: ${{ env.SKIP != 'true' }}
@@ -129,22 +129,24 @@ jobs:
           sudo chmod -R a+w dist
         fi
 
-    - uses: actions/upload-artifact@v4
-        with:
-          name: wheels-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}-${{ matrix.MB_ML_VER }}
-          path: dist/scipy_openblas*.whl
+    - uses: actions/upload-artifact@v4 
+      if: ${{ env.SKIP != 'true' }}
+      with:
+        name: wheels-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}-${{ matrix.MB_ML_VER }}
+        path: dist/scipy_openblas*.whl
 
     - uses: actions/upload-artifact@v4
-        with:
-          name: openblas-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}-${{ matrix.MB_ML_VER }}
-          path: libs/openblas*.tar.gz
+      if: ${{ env.SKIP != 'true' }}
+      with:
+        name: openblas-${{ matrix.os }}-${{ matrix.PLAT }}-${{ matrix.INTERFACE64 }}-${{ matrix.MB_ML_LIBC }}-${{ matrix.MB_ML_VER }}
+        path: libs/openblas*.tar.gz
 
 
     - name: Upload wheels
       if: ${{ env.SKIP != 'true' }}
       run: |
         ls dist/*.whl || exit 0
-        twine upload --repository-url https://lpypi.loongnix.cn/loongson/pypi dist/*.whl
+        twine upload --non-interactive --disable-progress-bar --repository-url https://lpypi.loongnix.cn/loongson/pypi dist/*.whl
         env:
-          TWINE_USERNAME: ${{ secrets.INDEX_NAME  }}
+          TWINE_USERNAME: ${{ secrets.INDEX_NAME }}
           TWINE_PASSWORD: ${{ secrets.INDEX_TOKEN }}
