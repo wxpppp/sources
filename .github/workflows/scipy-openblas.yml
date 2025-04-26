@@ -41,20 +41,46 @@ jobs:
       PLAT: ${{ matrix.PLAT }}
 
     steps:
-    - name: Get repository name
+    - name: Check if exists
       run: |
-        version=${{ github.event.inputs.version }}
+        case $INTERFACE64 in
+          0) pkg="scipy-openblas32" ;;
+          1) pkg="scipy-openblas64" ;;
+        esac
+
+        version="${{ github.event.inputs.version }}"
+        platform="$MB_ML_LIBC"
+        url="https://lpypi.loongnix.cn/loongson/pypi/+simple/${pkg}/"
         repo="loong64/openblas-libs"
+        upstream_url="https://api.github.com/repos/MacPython/openblas-libs/releases/latest"
+
         if [[ "${version}" == "latest" ]]; then
-          version="$(curl -s "https://api.github.com/repos/MacPython/openblas-libs/releases/latest" | jq -r ".tag_name")"
+          version="$(curl -s "${upstream_url}" | jq -r ".tag_name")"
           repo="MacPython/openblas-libs"
         fi
+
         openblas_commit=$(echo ${version} | awk -F. '{print $1"."$2"."$3}')
+
+        if curl -s "${url}" | grep ${VERSION} | grep -q ${PLATFORM}; then
+            echo "SKIP=true" >> $GITHUB_ENV
+            echo "${PLATFORM} wheels already exists."
+        else
+            echo "SKIP=false" >> $GITHUB_ENV
+            echo "${PLATFORM} wheels not found, continue building"
+        fi
+
         echo "VERSION=${version}" >> $GITHUB_ENV
         echo "REPO=${repo}" >> $GITHUB_ENV
         echo "OPENBLAS_COMMIT=${openblas_commit}" >> $GITHUB_ENV
+
+
+    - name: Clean workspace
+      if: ${{ env.SKIP != 'true' }}
+      run: |
+        rm -rf ${{ github.workspace }}/* ${{ github.workspace }}/.*
         
     - name: Download source
+      if: ${{ env.SKIP != 'true' }}
       uses: actions/checkout@v4
       with:
         repository: ${{ env.REPO }}
@@ -63,6 +89,7 @@ jobs:
         fetch-depth: 0
 
     - name: Build Openblas
+      if: ${{ env.SKIP != 'true' }}
       run: |
         sed -i "s/quay.io/lcr.loongnix.cn/g" tools/build_steps.sh
         set -xeo pipefail
@@ -83,6 +110,7 @@ jobs:
         fi
 
     - name: Build and test wheel
+      if: ${{ env.SKIP != 'true' }}
       run: |
         if [[ "$NIGHTLY" = "true" ]]; then
           # Set the pyproject.toml version: convert v0.3.24-30-g138ed79f to 0.3.34.30
@@ -100,3 +128,11 @@ jobs:
             /bin/bash -xe /openblas/tools/build_wheel.sh
         fi
 
+    - name: Upload wheels
+      if: ${{ env.SKIP != 'true' }}
+      run: |
+        ls dist/*.whl || exit 0
+        twine upload --repository-url https://lpypi.loongnix.cn/loongson/pypi dist/*.whl
+        env:
+          TWINE_USERNAME: ${{ secrets.INDEX_NAME  }}
+          TWINE_PASSWORD: ${{ secrets.INDEX_TOKEN }}
