@@ -69,6 +69,7 @@ jobs:
           CIBW_ARCHS: "loongarch64"
           CIBW_BUILD: "*-${{ matrix.platform }}_loongarch64"
           CIBW_TEST_SKIP: "*"
+          CIBW_SKIP: "cp36-* cp37-* cp38-* cp313t-* pp*"
           CIBW_ENVIRONMENT_PASS_LINUX: |
             PIP_INDEX_URL
             PIP_EXTRA_INDEX_URL
