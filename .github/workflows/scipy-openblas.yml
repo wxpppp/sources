@@ -2,7 +2,7 @@ name: build scipy-openblas wheel
 
 on:
   schedule:
-    - cron: '0 11 * * *'
+    - cron: '0 5 * * *'
   workflow_dispatch:
     inputs:
       version:
@@ -15,23 +15,26 @@ env:
 jobs:
   build:
     name: Build scipy-openblas ${{ matrix.MB_ML_LIBC }} wheel on loongarch64
-    runs-on: loongarch64-abi2.0
+    runs-on: ${{ matrix.os }}
     defaults:
       run:
         shell: bash
     strategy:
       fail-fast: false
       matrix:
+        os: [loongarch64-abi2.0]
         PLAT: [loongarch64]
         INTERFACE64: ['0', '1']
         MB_ML_VER: ['_2_38']
         MB_ML_LIBC: ['manylinux']
         include:
-          - PLAT: loongarch64
+          - os: loongarch64-abi2.0
+            PLAT: loongarch64
             INTERFACE64: '1'
             MB_ML_LIBC: musllinux
             MB_ML_VER: _1_2
-          - PLAT: loongarch64
+          - os: loongarch64-abi2.0
+            PLAT: loongarch64
             INTERFACE64: '0'
             MB_ML_LIBC: musllinux
             MB_ML_VER: _1_2
@@ -51,7 +54,12 @@ jobs:
           1) pkg="scipy-openblas64" ;;
         esac
 
-        version="${{ github.event.inputs.version }}"
+        if [[ "${{ github.event_name }}" == "schedule" ]]; then
+          version="latest"
+        else
+          version="${{ github.event.inputs.version }}"
+        fi
+
         platform="$MB_ML_LIBC"
         url="https://lpypi.loongnix.cn/loongson/pypi/+simple/${pkg}/"
         repo="loong64/openblas-libs"

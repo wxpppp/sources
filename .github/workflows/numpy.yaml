@@ -3,7 +3,7 @@ name: build numpy wheel
 
 on:
   schedule:
-    - cron: '0 10 * * *'
+    - cron: '0 4 * * *'
   workflow_dispatch:
     inputs:
       version:
@@ -13,32 +13,40 @@ on:
 jobs:
   build:
     name: Build numpy ${{ matrix.platform }} wheel on loongarch64
-    runs-on: loongarch64-abi2.0
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os: [loongarch64-abi2.0]
         platform: ["manylinux", "musllinux"]
     steps:
       - name: Check if exists
         run: |
-          PKG=numpy
-          VERSION="${{ github.event.inputs.version }}"
-          PLATFORM="${{ matrix.platform }}"
-          URL="https://lpypi.loongnix.cn/loongson/pypi/+simple/${PKG}/"
-          UPSTREAM_URL="https://pypi.org/pypi/${PKG}/json"
+          pkg=numpy
 
-          if [[ "${VERSION}" == "latest" ]]; then
-            VERSION="$(curl -s ${UPSTREAM_URL} | jq -r '.info.version')"
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            version="latest"
+          else
+            version="${{ github.event.inputs.version }}"
           fi
 
-          if curl -s ${URL} | grep ${VERSION} | grep -q ${PLATFORM}; then
+          platform="${{ matrix.platform }}"
+          url="https://lpypi.loongnix.cn/loongson/pypi/+simple/${pkg}/"
+          upstream_url="https://pypi.org/pypi/${pkg}/json"
+
+          if [[ "${version}" == "latest" ]]; then
+            version="$(curl -s ${upstream_url} | jq -r '.info.version')"
+          fi
+
+          if curl -s ${url} | grep ${version} | grep -q ${platform}; then
             echo "SKIP=true" >> $GITHUB_ENV
-            echo "${PLATFORM} wheels already exists."
+            echo "${platform} wheels already exists."
           else
             echo "SKIP=false" >> $GITHUB_ENV
-            echo "${PLATFORM} wheels not found, continue building"
+            echo "${platform} wheels not found, continue building"
           fi
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+          echo "VERSION=${version}" >> $GITHUB_ENV
 
       - name: Download source
         if: ${{ env.SKIP != 'true' }}
