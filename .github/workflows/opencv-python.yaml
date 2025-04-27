@@ -1,4 +1,4 @@
-name: build lxml wheel
+name: build opencv-python wheel
 
 on:
   schedule:
@@ -11,17 +11,17 @@ on:
 
 jobs:
   build:
-    name: Build lxml ${{ matrix.platform }} wheel on loongarch64
+    name: Build opencv-python ${{ matrix.platform }} wheel on loongarch64
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [loongarch64-abi2.0]
-        platform: ["manylinux", "musllinux"]
+        platform: ["manylinux"]
     steps:
       - name: Check if exists
         run: |
-          pkg=lxml
+          pkg=opencv-python
 
           if [[ "${{ github.event_name }}" == "schedule" ]]; then
             version="latest"
@@ -56,7 +56,7 @@ jobs:
         if: ${{ env.SKIP != 'true' }}
         uses: wxpppp/sources@main
         with:
-          name: lxml
+          name: opencv-python
           version: ${{ env.VERSION }}
 
       - name: Build wheel
