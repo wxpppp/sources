@@ -1,6 +1,8 @@
-name: build scipy-openblas
+name: build scipy-openblas wheel
 
 on:
+  schedule:
+    - cron: '0 11 * * *'
   workflow_dispatch:
     inputs:
       version:
@@ -12,6 +14,7 @@ env:
 
 jobs:
   build:
+    name: Build scipy-openblas ${{ matrix.MB_ML_LIBC }} wheel on loongarch64
     runs-on: loongarch64-abi2.0
     defaults:
       run:
