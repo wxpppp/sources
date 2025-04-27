@@ -75,6 +75,7 @@ jobs:
             PIP_EXTRA_INDEX_URL
 
       - name: Upload wheels
+        if: ${{ env.SKIP != 'true' }}
         run: |
           ls wheelhouse/*-${{ matrix.platform }}_*.whl || exit 0
           twine upload --repository-url https://lpypi.loongnix.cn/loongson/pypi wheelhouse/*-${{ matrix.platform }}_*.whl
