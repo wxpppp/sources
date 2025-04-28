@@ -18,7 +18,7 @@ jobs:
       matrix:
         os: [loongarch64-abi2.0]
         platform: ["manylinux"]
-        python: ["cp38", "cp39", "cp310", "cp311", "cp312", "cp313"]
+        python: ["cp39", "cp310", "cp311", "cp312", "cp313"]
     steps:
       - name: Check if exists
         run: |
@@ -68,12 +68,14 @@ jobs:
         env:
           PIP_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
           PIP_EXTRA_INDEX_URL: "https://pypi.tuna.tsinghua.edu.cn/simple"
+          USE_CCACHE: "1"
           CIBW_ARCHS: "loongarch64"
           CIBW_BUILD: "${{ matrix.python }}-${{ matrix.platform }}_loongarch64"
           CIBW_TEST_SKIP: "*"
           CIBW_ENVIRONMENT_PASS_LINUX: |
             PIP_INDEX_URL
             PIP_EXTRA_INDEX_URL
+            USE_CCACHE
 
       - name: Upload wheels
         if: ${{ env.SKIP != 'true' }}
