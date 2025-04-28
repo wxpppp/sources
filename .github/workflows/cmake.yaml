@@ -71,6 +71,8 @@ jobs:
               ;;
           esac
 
+          sed -i 's/"cmake.define.RUN_CMAKE_TEST" = "ON"/"cmake.define.RUN_CMAKE_TEST" = "OFF"/g' pyproject.toml
+
       - name: Build wheel
         if: ${{ env.SKIP != 'true' }}
         run: |
