@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    name: Build apache-tvm ${{ matrix.platform }} wheel on loongarch64
+    name: Build ${{ matrix.python }} ${{ matrix.platform }} wheel on loongarch64
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
