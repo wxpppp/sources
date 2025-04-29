@@ -82,16 +82,18 @@ jobs:
         if: ${{ env.SKIP != 'true' }}
         env:
           RUNNER_OS: Linux
+          PIP_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
+          PIP_EXTRA_INDEX_URL: "https://pypi.tuna.tsinghua.edu.cn/simple"
           CIBW_PRERELEASE_PYTHONS: ${{ matrix.prerelease_pythons }}
           CIBW_FREE_THREADED_SUPPORT: ${{ matrix.free_threaded_support }}
-          CIBW_ENVIRONMENT: |
-            SKLEARN_SKIP_NETWORK_TESTS=1
-            PIP_INDEX_URL="https://lpypi.loongnix.cn/loongson/pypi/+simple"
-            PIP_EXTRA_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+          CIBW_ENVIRONMENT_LINUX: SKLEARN_SKIP_NETWORK_TESTS=1
           CIBW_BUILD: cp${{ matrix.python }}-${{ matrix.platform }}_loongarch64
           CIBW_ARCHS: loongarch64
           CIBW_BEFORE_BUILD: bash {project}/build_tools/wheels/cibw_before_build.sh {project}
-          CIBW_ENVIRONMENT_PASS_LINUX: RUNNER_OS
+          CIBW_ENVIRONMENT_PASS_LINUX: |
+            RUNNER_OS
+            PIP_INDEX_URL
+            PIP_EXTRA_INDEX_URL
           CIBW_BUILD_VERBOSITY: 1
           CIBW_TEST_SKIP: "*"
         run: build_tools/wheels/build_wheels.sh
