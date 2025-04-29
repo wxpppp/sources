@@ -156,7 +156,7 @@ jobs:
     - name: Upload wheels
       if: ${{ env.SKIP != 'true' }}
       run: |
-        ls dist/*.whl || exit 0
+        ls dist/*.whl || exit 1
         twine upload --non-interactive --disable-progress-bar --repository-url https://lpypi.loongnix.cn/loongson/pypi dist/*.whl
       env:
           TWINE_USERNAME: ${{ secrets.INDEX_NAME }}

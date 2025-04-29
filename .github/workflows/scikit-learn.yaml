@@ -1,28 +1,38 @@
-name: build apache-tvm wheel
+name: build scikit-learn wheel
 
 on:
   schedule:
-    - cron: '0 17 * * *'
+    - cron: '0 17 * * *' 
   workflow_dispatch:
     inputs:
       version:
         required: false
         default: 'latest'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
-  build:
-    name: Build apache-tvm ${{ matrix.platform }} wheel on loongarch64
+  build_wheels:
+    name: Build wheel for cp${{ matrix.python }}-${{ matrix.platform }}-loongarch64
     runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: bash -el {0}
+
     strategy:
       fail-fast: false
       matrix:
         os: [loongarch64-abi2.0]
         platform: ["manylinux"]
-        python: ["cp38", "cp39", "cp310", "cp311", "cp312", "cp313"]
+        python: ["39", "310", "311", "312", "313"]
+
     steps:
       - name: Check if exists
         run: |
-          pkg=tvm
+          pkg=scikit-learn
 
           if [[ "${{ github.event_name }}" == "schedule" ]]; then
             version="latest"
@@ -32,8 +42,8 @@ jobs:
 
           platform="${{ matrix.platform }}"
           python_tag="${{ matrix.python }}"
-          repo="apache/${pkg}"
-          url="https://lpypi.loongnix.cn/loongson/pypi/+simple/apache-${pkg}/"
+          repo="${pkg}/${pkg}"
+          url="https://lpypi.loongnix.cn/loongson/pypi/+simple/${pkg}/"
           upstream_url="https://api.github.com/repos/${repo}/releases/latest"
 
           if [[ "${version}" == "latest" ]]; then
@@ -62,45 +72,29 @@ jobs:
         with:
           repository: ${{ env.REPO }}
           ref: ${{ env.VERSION }}
-          submodules: recursive
-          fetch-depth: 0
 
       - name: Patch source
         if: ${{ env.SKIP != 'true' }}
         run: |
-          curl -sL -o 3rdparty/libbacktrace/config.guess "https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess"
-          curl -sL -o 3rdparty/libbacktrace/config.sub "https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub"
-          sed -i 's/name="tvm/name="apache-tvm/g' python/setup.py
-          rm -rf build && mkdir build
+          sed -i '/pip install cibuildwheel/d' build_tools/wheels/build_wheels.sh
 
       - name: Build wheel
         if: ${{ env.SKIP != 'true' }}
-        run: |
-          cibuildwheel python/
         env:
-          CIBW_ARCHS: "loongarch64"
-          CIBW_BUILD: "${{ matrix.python }}-${{ matrix.platform }}_loongarch64"
-          CIBW_TEST_SKIP: "*"
-          CIBW_ENVIRONMENT_LINUX: |
-            TVM_LIBRARY_PATH="$(realpath build)"
+          RUNNER_OS: Linux
+          CIBW_PRERELEASE_PYTHONS: ${{ matrix.prerelease_pythons }}
+          CIBW_FREE_THREADED_SUPPORT: ${{ matrix.free_threaded_support }}
+          CIBW_ENVIRONMENT: |
+            SKLEARN_SKIP_NETWORK_TESTS=1
             PIP_INDEX_URL="https://lpypi.loongnix.cn/loongson/pypi/+simple"
             PIP_EXTRA_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
-          CIBW_BEFORE_ALL: |
-            yum install -y llvm llvm-devel
-            pip install cython
-            cd build
-            cp ../cmake/config.cmake .
-            echo "set(CMAKE_BUILD_TYPE Release)" >> config.cmake
-            echo "set(USE_LLVM \"llvm-config --ignore-libllvm --link-static\")" >> config.cmake
-            echo "set(HIDE_PRIVATE_SYMBOLS ON)" >> config.cmake
-            echo "set(USE_CUDA   OFF)" >> config.cmake
-            echo "set(USE_METAL  OFF)" >> config.cmake
-            echo "set(USE_VULKAN OFF)" >> config.cmake
-            echo "set(USE_OPENCL OFF)" >> config.cmake
-            echo "set(USE_CUBLAS OFF)" >> config.cmake
-            echo "set(USE_CUDNN  OFF)" >> config.cmake
-            echo "set(USE_CUTLASS OFF)" >> config.cmake
-            cmake .. && cmake --build . --parallel $(nproc)
+          CIBW_BUILD: cp${{ matrix.python }}-${{ matrix.platform }}_loongarch64
+          CIBW_ARCHS: loongarch64
+          CIBW_BEFORE_BUILD: bash {project}/build_tools/wheels/cibw_before_build.sh {project}
+          CIBW_ENVIRONMENT_PASS_LINUX: RUNNER_OS
+          CIBW_BUILD_VERBOSITY: 1
+          CIBW_TEST_SKIP: "*"
+        run: build_tools/wheels/build_wheels.sh
 
       - name: Upload wheels
         if: ${{ env.SKIP != 'true' }}
@@ -110,3 +104,8 @@ jobs:
         env:
           TWINE_USERNAME: ${{ secrets.INDEX_NAME  }}
           TWINE_PASSWORD: ${{ secrets.INDEX_TOKEN }}
+
+
+
+
+
