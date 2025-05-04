@@ -18,7 +18,7 @@ jobs:
       matrix:
         os: [loongarch64-abi2.0]
         platform: ["manylinux", "musllinux"]
-        python: [["cp310", "3.10"], ["cp311", "3.11"], ["cp312", "3.12"], ["cp313", "3.13"], ["cp313t", "3.13"]]
+        python: [["cp310", "3.10"], ["cp311", "3.11"], ["cp312", "3.12"], ["cp313", "3.13"]]
     steps:
       - name: Check if exists
         run: |
@@ -77,6 +77,7 @@ jobs:
           PIP_EXTRA_INDEX_URL: "https://pypi.tuna.tsinghua.edu.cn/simple"
           CIBW_ARCHS: "loongarch64"
           CIBW_BUILD: "${{ matrix.python[0] }}-${{ matrix.platform }}_loongarch64"
+          CIBW_ENABLE: cpython-freethreading cpython-prerelease
           CIBW_TEST_SKIP: "*"
           CIBW_ENVIRONMENT_PASS_LINUX: |
             PIP_INDEX_URL
