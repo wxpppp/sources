@@ -80,8 +80,8 @@ jobs:
         run: |
           cibuildwheel
         env:
-          PIP_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
-          PIP_EXTRA_INDEX_URL: "https://pypi.tuna.tsinghua.edu.cn/simple"
+          PIP_INDEX_URL: "https://pypi.tuna.tsinghua.edu.cn/simple"
+          PIP_EXTRA_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
           CIBW_ARCHS: "loongarch64"
           CIBW_BUILD: "${{ matrix.python[0] }}-${{ matrix.platform }}_loongarch64"
           CIBW_ENABLE: cpython-freethreading cpython-prerelease
