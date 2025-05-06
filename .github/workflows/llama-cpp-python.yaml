@@ -1,8 +1,6 @@
 name: build llama-cpp-python wheel
 
 on:
-  schedule:
-    - cron: '0 17 * * *'
   workflow_dispatch:
     inputs:
       version:
@@ -11,13 +9,12 @@ on:
 
 jobs:
   build:
-    name: Build llama-cpp-python ${{ matrix.platform }} wheel on ${{ matrix.os }}
+    name: Build llama-cpp-python wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [loongarch64-abi2.0]
-        platform: ["manylinux"]
     steps:
       - name: Check if exists
         run: |
@@ -29,7 +26,6 @@ jobs:
             version="${{ github.event.inputs.version }}"
           fi
 
-          platform="${{ matrix.platform }}"
           url="https://lpypi.loongnix.cn/loongson/pypi/+simple/${pkg}/"
           upstream_url="https://pypi.org/pypi/${pkg}/json"
 
@@ -37,12 +33,12 @@ jobs:
             version="$(curl -s ${upstream_url} | jq -r '.info.version')"
           fi
 
-          if curl -s ${url} | grep ${version} | grep -q ${platform}; then
+          if curl -s ${url} | grep -q ${version}; then
             echo "SKIP=true" >> $GITHUB_ENV
-            echo "${platform} wheels already exists."
+            echo "${pkg} wheels already exists."
           else
             echo "SKIP=false" >> $GITHUB_ENV
-            echo "${platform} wheels not found, continue building"
+            echo "${pkg} wheels not found, continue building"
           fi
 
           echo "VERSION=v${version}" >> $GITHUB_ENV
@@ -72,6 +68,7 @@ jobs:
           CIBW_ARCHS: "loongarch64"
           CIBW_BUILD: "cp38-* cp39-* cp310-* cp311-* cp312-*"
           CIBW_TEST_SKIP: "*"
+          CIBW_REPAIR_WHEEL_COMMAND: ""
           CIBW_ENVIRONMENT_PASS_LINUX: |
             PIP_INDEX_URL
             PIP_EXTRA_INDEX_URL
@@ -79,8 +76,8 @@ jobs:
       - name: Upload wheels
         if: ${{ env.SKIP != 'true' }}
         run: |
-          ls wheelhouse/*-${{ matrix.platform }}_*.whl || exit 1
-          twine upload --repository-url https://lpypi.loongnix.cn/loongson/pypi wheelhouse/*-${{ matrix.platform }}_*.whl
+          ls wheelhouse/*.whl || exit 1
+          twine upload --repository-url https://lpypi.loongnix.cn/loongson/pypi wheelhouse/*.whl
         env:
           TWINE_USERNAME: ${{ secrets.INDEX_NAME  }}
           TWINE_PASSWORD: ${{ secrets.INDEX_TOKEN }}
