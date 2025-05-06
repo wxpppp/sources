@@ -60,7 +60,7 @@ jobs:
           version: ${{ env.VERSION }}
 
       - name: Disable build isolation for python free-threaded version
-        if: endsWith(matrix.python, 't')
+        if: ${{ endsWith(matrix.python, 't') && env.SKIP != 'true' }}
         shell: bash -el {0}
         run: |
           CIBW="pip; args: --no-build-isolation"
