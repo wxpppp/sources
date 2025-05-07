@@ -74,7 +74,7 @@ jobs:
               ;;
             musllinux_*)
               DOCKER_IMAGE="lcr.loongnix.cn/pypa/musllinux_1_2_loongarch64"
-              DOCKER_CMD="apk add perl-utils git libtool"
+              DOCKER_CMD="apk add perl-utils git libtool && export ACLOCAL_PATH=/usr/local/share/aclocal"
               ;;
             *)
               exit 1
