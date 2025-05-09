@@ -37,7 +37,7 @@ jobs:
             version="$(curl -s ${upstream_url} | jq -r '.info.version')"
           fi
 
-          if curl -s ${url} | grep ${version} | grep -q ${platform}; then
+          if curl -s ${url} | grep -q ${pkg}-${version}-.*${platform}; then
             echo "SKIP=true" >> $GITHUB_ENV
             echo "${platform} wheels already exists."
           else
@@ -80,10 +80,12 @@ jobs:
         env:
           PIP_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
           PIP_EXTRA_INDEX_URL: "https://pypi.tuna.tsinghua.edu.cn/simple"
+          HTTPS_PROXY: ${{ secrets.PROXY_URL }}
           CIBW_ARCHS: "loongarch64"
           CIBW_ENVIRONMENT_PASS_LINUX: |
             PIP_INDEX_URL
             PIP_EXTRA_INDEX_URL
+            HTTPS_PROXY
 
       - name: Upload wheels
         if: ${{ env.SKIP != 'true' }}
@@ -91,5 +93,5 @@ jobs:
           ls wheelhouse/*-${{ matrix.platform }}_*.whl || exit 1
           twine upload --repository-url https://lpypi.loongnix.cn/loongson/pypi wheelhouse/*-${{ matrix.platform }}_*.whl
         env:
-          TWINE_USERNAME: ${{ secrets.INDEX_NAME  }}
+          TWINE_USERNAME: ${{ secrets.INDEX_NAME }}
           TWINE_PASSWORD: ${{ secrets.INDEX_TOKEN }}
