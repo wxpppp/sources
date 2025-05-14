@@ -11,13 +11,14 @@ on:
 
 jobs:
   build:
-    name: Build wheel for ${{ matrix.platform }}-loongarch64
+    name: Build wheel for ${{ matrix.python }}-${{ matrix.platform }}-loongarch64
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [loongarch64-abi2.0]
         platform: ["manylinux"]
+        python: ["cp39", "cp310", "cp311", "cp312", "cp313"]
     steps:
       - name: Check if exists
         run: |
@@ -30,6 +31,7 @@ jobs:
           fi
 
           platform="${{ matrix.platform }}"
+          python_tag="${{ matrix.python }}"
           url="https://lpypi.loongnix.cn/loongson/pypi/+simple/${pkg}/"
           upstream_url="https://pypi.org/pypi/${pkg}/json"
 
@@ -37,7 +39,7 @@ jobs:
             version="$(curl -s ${upstream_url} | jq -r '.info.version')"
           fi
 
-          if curl -s ${url} | grep ${version} | grep -q ${platform}; then
+          if curl -s ${url} | grep -q ${pkg}-${version}-.*${python_tag}-${platform}; then
             echo "SKIP=true" >> $GITHUB_ENV
             echo "${platform} wheels already exists."
           else
@@ -67,7 +69,7 @@ jobs:
           PIP_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
           PIP_EXTRA_INDEX_URL: "https://pypi.tuna.tsinghua.edu.cn/simple"
           CIBW_ARCHS: "loongarch64"
-          CIBW_BUILD: "*-${{ matrix.platform }}_loongarch64"
+          CIBW_BUILD: "${{ matrix.python }}-${{ matrix.platform }}_loongarch64"
           CIBW_TEST_SKIP: "*"
           CIBW_ENVIRONMENT_PASS_LINUX: |
             PIP_INDEX_URL
@@ -76,8 +78,8 @@ jobs:
       - name: Upload wheels
         if: ${{ env.SKIP != 'true' }}
         run: |
-          ls wheelhouse/*-${{ matrix.platform }}_*.whl || exit 1
-          twine upload --repository-url https://lpypi.loongnix.cn/loongson/pypi wheelhouse/*-${{ matrix.platform }}_*.whl
+          ls wheelhouse/*${{ matrix.python }}-${{ matrix.platform }}_*.whl || exit 1
+          twine upload --repository-url https://lpypi.loongnix.cn/loongson/pypi wheelhouse/*${{ matrix.python }}-${{ matrix.platform }}_*.whl
         env:
           TWINE_USERNAME: ${{ secrets.INDEX_NAME  }}
           TWINE_PASSWORD: ${{ secrets.INDEX_TOKEN }}
