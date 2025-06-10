@@ -27,7 +27,7 @@ jobs:
       matrix:
         os: [loongarch64-abi2.0]
         platform: ["manylinux"]
-        python: ["39", "310", "311", "312", "313"]
+        python: ["310", "311", "312", "313"]
 
     steps:
       - name: Check if exists
