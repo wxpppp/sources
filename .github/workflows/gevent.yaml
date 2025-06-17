@@ -57,6 +57,7 @@ jobs:
         if: ${{ env.SKIP != 'true' }}
         run: |
           safe-rm -rf * .*
+          safe-chown .cache
 
       - name: Download source
         if: ${{ env.SKIP != 'true' }}
