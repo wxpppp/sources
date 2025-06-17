@@ -70,7 +70,7 @@ jobs:
           PIP_INDEX_URL: "https://pypi.tuna.tsinghua.edu.cn/simple"
           CIBW_ARCHS: "loongarch64"
           CIBW_BUILD: "${{ matrix.python }}-${{ matrix.platform }}_loongarch64"
-          CIBW_BUILD_VERBOSITY: 3
+          CIBW_BUILD_VERBOSITY: 1
           CIBW_ENVIRONMENT_LINUX: >
             HTTPS_PROXY=${{ secrets.PROXY_URL }}
             PATH="$PATH:$HOME/.cargo/bin"
