@@ -12,7 +12,7 @@ env:
   PACKAGE: grpcio
 jobs:
   build:
-    name: Build grpcio ${{ matrix.platform }} wheel on ${{ matrix.os }}
+    name: Build grpcio ${{ matrix.python }} ${{ matrix.platform }} wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
