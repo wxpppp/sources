@@ -113,6 +113,7 @@ jobs:
         if: ${{ env.SKIP != 'true' }}
         run: |
           curl -sSf https://sh.rustup.rs | sh -s -- -y
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
         env:
           RUSTUP_INIT_SKIP_PATH_CHECK: "1"
 
@@ -120,7 +121,6 @@ jobs:
         if: ${{ env.SKIP != 'true' }}
         run: |
           pipx install maturin
-          export PATH="$HOME/.cargo/bin:$PATH"
           maturin build --out dist --compatibility ${{ matrix.platform }}
         env:
           PIP_EXTRA_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
