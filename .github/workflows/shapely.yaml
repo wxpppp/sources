@@ -49,7 +49,7 @@ jobs:
 
 
   build:
-    name: Build shapely ${{ matrix.platform }} wheel on ${{ matrix.os }}
+    name: Build shapely ${{ matrix.baseimage }} wheel on ${{ matrix.os }}
     needs: check-wheel-exists
     if: needs.check-wheel-exists.outputs.build == 'true'
     runs-on: ${{ matrix.os }}
