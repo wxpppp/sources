@@ -19,13 +19,27 @@ jobs:
     runs-on: loongarch64-abi2.0
     outputs:
       version: ${{ steps.check.outputs.version }}
-      build: ${{ steps.check.outputs.build }}
+      build_manylinux: ${{ steps.check.outputs.build_manylinux }}
+      build_musllinux: ${{ steps.check.outputs.build_musllinux }}
     steps:
 
       - name: Check if wheels exist
         id: check
         run: |
           pkg=${{ env.PACKAGE }}
+
+          check_wheel() {
+            local tag=$1
+
+            if curl -Ls "${url}" | grep -q "${pkg}-${version}.*${tag}"; then
+              echo "build_${tag}=false" >> $GITHUB_OUTPUT
+              echo "${tag} wheel already exists."
+            else
+              echo "build_${tag}=true" >> $GITHUB_OUTPUT
+              echo "${tag} wheel not found, continue building."
+            fi
+
+          }
 
           if [[ "${{ github.event_name }}" == "schedule" ]]; then
             version="latest"
@@ -40,18 +54,31 @@ jobs:
           fi
           echo "version=${version}" >> $GITHUB_OUTPUT
 
-          if curl -Ls "${url}" | grep -q "${pkg}-${version}.*whl"; then
-            echo "build=false" >> $GITHUB_OUTPUT
-          else
-            echo "build=true" >> $GITHUB_OUTPUT
-            safe-rm -rf * .*
-          fi
+          for tag in manylinux musllinux; do
+            check_wheel "$tag"
+          done
 
+  download:
+    name: Download source
+    needs: check-wheel-exists
+    env:
+      version: ${{ needs.check-wheel-exists.outputs.version }}
+    runs-on: loongarch64-abi2.0
+    if: ${{ needs.check-wheel-exists.outputs.build_manylinux == 'true' || needs.check-wheel-exists.outputs.build_musllinux == 'true' }}
+    steps:
+      - name: Clean workspace
+        run: safe-rm -rf * .*
+      
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          repository: shapely/shapely
+          ref: ${{ env.version }}
+          fetch-depth: 0
 
   build:
     name: Build shapely ${{ matrix.baseimage }} wheel on ${{ matrix.os }}
-    needs: check-wheel-exists
-    if: needs.check-wheel-exists.outputs.build == 'true'
+    needs: [check-wheel-exists, download]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -68,17 +95,16 @@ jobs:
     env:
       version: ${{ needs.check-wheel-exists.outputs.version }}
       basetag: latest
+      SKIP: true
 
     steps:
-
-      - name: Checkout source
-        uses: actions/checkout@v4
-        with:
-          repository: shapely/shapely
-          ref: ${{ env.version }}
-          fetch-depth: 0
+      - name: Check if wheel exists
+        if: |
+          ${{ (matrix.baseimage == 'manylinux_2_38_loongarch64' && needs.check-wheel-exists.outputs.build_manylinux == 'true') || (matrix.baseimage  == 'musllinux_1_2_loongarch64' && needs.check-wheel-exists.outputs.build_musllinux == 'true') }}
+        run: echo "SKIP=false" >> $GITHUB_ENV
 
       - name: Build Docker image with GEOS
+        if: ${{ env.SKIP != 'true' }}
         run: |
           docker build \
           --build-arg BASEIMAGE=lcr.loongnix.cn/pypa/${{ matrix.baseimage }}:${{ env.basetag }} \
@@ -89,10 +115,12 @@ jobs:
           .
 
       - name: Add GEOS LICENSE
+        if: ${{ env.SKIP != 'true' }}
         run: cp ci/wheelbuilder/LICENSE_GEOS .
         shell: bash
 
       - name: Build wheels
+        if: ${{ env.SKIP != 'true' }}
         run: cibuildwheel
         env:
           PIP_EXTRA_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
@@ -114,20 +142,12 @@ jobs:
             PIP_INDEX_URL
             PIP_EXTRA_INDEX_URL
 
-  upload:
-    name: Upload wheels
-    needs: [check-wheel-exists, build]
-    runs-on: ${{ matrix.os }}
-    env:
-      version: ${{ needs.check-wheel-exists.outputs.version }}
-      TWINE_USERNAME: ${{ secrets.INDEX_NAME  }}
-      TWINE_PASSWORD: ${{ secrets.INDEX_TOKEN }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [loongarch64-abi2.0]
-    steps:
       - name: Upload wheels
+        if: ${{ env.SKIP != 'true' }}
+        env:
+          TWINE_USERNAME: ${{ secrets.INDEX_NAME  }}
+          TWINE_PASSWORD: ${{ secrets.INDEX_TOKEN }}
         run: |
-          ls wheelhouse/${{ env.PACKAGE }}-${{ env.version }}*.whl || exit 1
-          twine upload --repository-url https://lpypi.loongnix.cn/loongson/pypi wheelhouse/${{ env.PACKAGE }}-${{ env.version }}*.whl
+          ls wheelhouse/*${{ matrix.baseimage }}.whl || exit 1
+          twine upload --repository-url https://lpypi.loongnix.cn/loongson/pypi wheelhouse/*${{ matrix.baseimage }}.whl
+
