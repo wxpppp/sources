@@ -115,8 +115,7 @@ jobs:
         SKIP: true
     steps:
       - name: Check if wheel exists
-        if: |
-          ${{ (matrix.platform == 'manylinux_2_38' && needs.check-wheel-exists.outputs.build_manylinux == 'true') || (matrix.platform  == 'musllinux_1_2' && needs.check-wheel-exists.outputs.build_musllinux == 'true') }}
+        if: ${{ (matrix.platform == 'manylinux_2_38' && needs.check-wheel-exists.outputs.build_manylinux == 'true') || (matrix.platform  == 'musllinux_1_2' && needs.check-wheel-exists.outputs.build_musllinux == 'true') }}
         run:
           echo "SKIP=false" >> $GITHUB_ENV
 
