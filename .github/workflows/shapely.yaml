@@ -58,6 +58,15 @@ jobs:
             check_wheel "$tag"
           done
 
+  debug:
+    name: Debug outputs
+    needs: check-wheel-exists
+    runs-on: loongarch64-abi2.0
+    steps:
+      - run: |
+          echo "build_manylinux=${{ needs.check-wheel-exists.outputs.build_manylinux }}"
+          echo "build_musllinux=${{ needs.check-wheel-exists.outputs.build_musllinux }}"
+
   download:
     name: Download source
     needs: check-wheel-exists
@@ -99,8 +108,7 @@ jobs:
 
     steps:
       - name: Check if wheel exists
-        if: |
-          ${{ (matrix.baseimage == 'manylinux_2_38_loongarch64' && needs.check-wheel-exists.outputs.build_manylinux == 'true') || (matrix.baseimage  == 'musllinux_1_2_loongarch64' && needs.check-wheel-exists.outputs.build_musllinux == 'true') }}
+        if: ${{ (matrix.baseimage == 'manylinux_2_38_loongarch64' && needs.check-wheel-exists.outputs.build_manylinux == 'true') || (matrix.baseimage  == 'musllinux_1_2_loongarch64' && needs.check-wheel-exists.outputs.build_musllinux == 'true') }}
         run: echo "SKIP=false" >> $GITHUB_ENV
 
       - name: Build Docker image with GEOS
