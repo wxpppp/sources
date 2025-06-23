@@ -18,7 +18,7 @@ jobs:
       matrix:
         os: [loongarch64-abi2.0]
         platform: ["manylinux", "musllinux"]
-        python: [["cp310", "3.10"], ["cp311", "3.11"], ["cp312", "3.12"], ["cp313", "3.13"], ["cp313t", "3.13t"]]
+        python: [["cp311", "3.11"], ["cp312", "3.12"], ["cp313", "3.13"], ["cp313t", "3.13t"]]
     steps:
       - name: Check if exists
         run: |
