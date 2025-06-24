@@ -123,13 +123,16 @@ jobs:
         if: ${{ env.SKIP != 'true' }}
         run: |
           curl -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+          echo "/root/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Build maturin binary
+        if: ${{ env.SKIP != 'true' }}
+        run: cargo build --release
 
       - name: Build wheel
         if: ${{ env.SKIP != 'true' }}
         run: |
-          pipx install maturin
-          export PATH="/root/.cargo/bin:$PATH"
-          maturin build --release -b bin -o dist --target ${{ matrix.target }} --compatibility ${{ matrix.platform }} --features password-storage
+          ./target/release/maturin build --release -b bin -o dist --target ${{ matrix.target }} --compatibility ${{ matrix.platform }} --features password-storage
         env:
           PIP_EXTRA_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
 
