@@ -61,21 +61,6 @@ jobs:
           name: scipy
           version: ${{ env.VERSION }}
 
-      - name: Disable build isolation for python free-threaded version
-        if: ${{ endsWith(matrix.python[0], 't') && env.SKIP != 'true' }}
-        shell: bash
-        run: |
-          CIBW="pip; args: --no-build-isolation"
-          echo "CIBW_BUILD_FRONTEND=$CIBW" >> $GITHUB_ENV
-
-      - name: Patch source
-        if: ${{ endsWith(matrix.python[0], 't') && env.SKIP != 'true' }}
-        shell: bash
-        run: |
-          sed -i 's|pip install -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple numpy cython|pip install -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple cython|' tools/wheels/cibw_before_build_linux.sh
-          sed -i 's|pip install ninja meson-python pybind11|pip install ninja meson-python pybind11 numpy|' tools/wheels/cibw_before_build_linux.sh
-          echo "HTTPS_PROXY=${{ secrets.PROXY_URL }}" >> $GITHUB_ENV
-
       - name: Build wheel
         if: ${{ env.SKIP != 'true' }}
         run: |
@@ -90,7 +75,6 @@ jobs:
           CIBW_ENVIRONMENT_PASS_LINUX: |
             PIP_INDEX_URL
             PIP_EXTRA_INDEX_URL
-            HTTPS_PROXY
 
       - name: Upload wheels
         if: ${{ env.SKIP != 'true' }}
