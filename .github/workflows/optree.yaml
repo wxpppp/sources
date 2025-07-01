@@ -41,7 +41,7 @@ jobs:
             version="$(curl -s ${upstream_url} | jq -r '.info.version')"
           fi
 
-          if curl -Ls ${url} | grep -q ${pkg}-${version}-${python_tag}.*${platform}; then
+          if curl -Ls ${url} | grep -q ${pkg}-${version}-.*-${python_tag}-${platform}; then
             echo "SKIP=true" >> $GITHUB_ENV
             echo "${platform} wheels already exists."
           else
