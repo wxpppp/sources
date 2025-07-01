@@ -10,6 +10,8 @@ on:
         default: 'latest'
 env:
   PACKAGE: h5py
+  HDF5_VERSION: 1.12.0
+  HDF5_DIR: ${{ github.workspace }}/cache/hdf5
 jobs:
   build:
     name: Build h5py ${{ matrix.python }} ${{ matrix.platform }} wheel on ${{ matrix.os }}
@@ -19,6 +21,7 @@ jobs:
       matrix:
         os: [loongarch64-abi2.0]
         platform: ["manylinux"]
+        image: ["lcr.loongnix.cn/pypa/manylinux_2_38_loongarch64"]
     steps:
       - name: Check if exists
         run: |
@@ -56,11 +59,39 @@ jobs:
 
       - name: Download source
         if: ${{ env.SKIP != 'true' }}
-        uses: wxpppp/sources@main
+        uses: actions/checkout@v4
         with:
-          name: ${{ env.PACKAGE }}
-          version: ${{ env.VERSION }}
+          repository: h5py/h5py
+          ref: ${{ env.VERSION }}
+          fetch-depth: 0
 
+      - name: Patch source
+        if: ${{ env.SKIP != 'true' }}
+        run: |
+          sed -i '/pushd hdf5-\$HDF5_VERSION/a\
+          curl -sSfL -o ./bin/config.sub https://git.savannah.gnu.org/cgit/config.git/plain/config.sub\n\
+          curl -sSfL -o ./bin/config.guess https://git.savannah.gnu.org/cgit/config.git/plain/config.guess\n' ci/get_hdf5_if_needed.sh
+
+      - name: Cache HDF5
+        if: ${{ env.SKIP != 'true' }}
+        id: cache-hdf5
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.HDF5_DIR }}
+          key: ${{ runner.os }}-hdf5-${{ env.HDF5_VERSION }}
+
+      - name: Build HDF5
+        if: steps.cache-hdf5.outputs.cache-hit != 'true' && env.SKIP != 'true'
+        run: |
+          docker run --rm \
+          --volume "$(pwd):/io" \
+          --env HDF5_VERSION \
+          --env HDF5_DIR="/io/cache/hdf5" \
+          --env HTTPS_PROXY=${{ secrets.PROXY_URL }} \
+          --workdir /io \
+          ${{ matrix.image }} \
+          bash -c "./ci/get_hdf5_if_needed.sh"
+          
       - name: Build wheel
         if: ${{ env.SKIP != 'true' }}
         run: cibuildwheel
@@ -70,6 +101,13 @@ jobs:
           CIBW_ARCHS: "loongarch64"
           CIBW_BUILD: "*-${{ matrix.platform }}_loongarch64"
           CIBW_SKIP: "pp* *musllinux*"
+          CIBW_TEST_SKIP: "*"
+          CIBW_ENVIRONMENT_LINUX: >
+            HTTPS_PROXY=${{ secrets.PROXY_URL }}
+            HDF5_VERSION=${{ env.HDF5_VERSION }}
+            HDF5_DIR="/project/cache/hdf5"
+            LD_LIBRARY_PATH="/project/cache/hdf5/lib:${LD_LIBRARY_PATH}"
+            PKG_CONFIG_PATH="/project/cache/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH}"
           CIBW_ENVIRONMENT_PASS_LINUX: >
             PIP_INDEX_URL
             PIP_EXTRA_INDEX_URL
