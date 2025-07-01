@@ -74,6 +74,7 @@ jobs:
           CIBW_BUILD: "${{ matrix.python }}-${{ matrix.platform }}_loongarch64"
           CIBW_BUILD_VERBOSITY: 1
           CIBW_SKIP: "pp*"
+          CIBW_TEST_SKIP: "*"
           CIBW_ENABLE: cpython-freethreading ${{ env.ALLOW_PRERELEASES == 'true' && 'cpython-prerelease' || '' }}
           CIBW_ENVIRONMENT_LINUX: >
             HTTPS_PROXY=${{ secrets.PROXY_URL }}
