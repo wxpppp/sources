@@ -50,7 +50,7 @@ jobs:
             version="$(curl -s "${upstream_url}" | jq -r ".tag_name")"
           fi
 
-          if curl -s ${url} | grep $(echo ${version} | cut -d 'v' -f2) | grep ${platform} | grep -q ${python_tag}; then
+          if curl -Ls ${url} | grep -q ${version#v}-.*${python_tag}-${platform}.*loongarch64; then
             echo "SKIP=true" >> $GITHUB_ENV
             echo "${pkg}-${version}-${python_tag}-${platform} wheel already exists."
           else

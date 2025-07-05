@@ -26,7 +26,7 @@ jobs:
           check_wheel() {
             local tag=$1
 
-            if curl -Ls "${url}" | grep -q "hf_xet-${version}.*${tag}"; then
+            if curl -Ls "${url}" | grep -q "hf_xet-${version}.*${tag}.*loongarch64"; then
               echo "build_${tag}=false" >> $GITHUB_OUTPUT
               echo "${tag} wheel already exists."
             else

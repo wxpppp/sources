@@ -38,7 +38,7 @@ jobs:
             version="$(curl -s ${upstream_url} | jq -r '.info.version')"
           fi
 
-          if curl -s ${url} | grep -q ${version}; then
+          if curl -Ls ${url} | grep -q faiss_cpu-${version}-.*loongarch64; then
             echo "SKIP=true" >> $GITHUB_ENV
             echo "${pkg} wheels already exists."
           else
@@ -65,6 +65,7 @@ jobs:
       - name: Build wheel
         if: ${{ env.SKIP != 'true' }}
         run: |
+          pip3 install -i https://lpypi.loongnix.cn/loongson/pypi/+simple cibuildwheel==2.22.0
           cibuildwheel
         env:
           PIP_INDEX_URL: "https://pypi.tuna.tsinghua.edu.cn/simple"

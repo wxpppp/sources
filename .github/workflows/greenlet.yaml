@@ -42,7 +42,7 @@ jobs:
             version="$(curl -s ${upstream_url} | jq -r '.info.version')"
           fi
 
-          if curl -s ${url} | grep ${version} | grep -q ${pkg}-${version}-.*${platform}; then
+          if curl -s ${url} | grep ${version} | grep -q ${pkg}-${version}-.*${platform}.*loongarch64; then
             echo "SKIP=true" >> $GITHUB_ENV
             echo "${platform} wheels already exists."
           else

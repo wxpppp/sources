@@ -31,7 +31,7 @@ jobs:
           check_wheel() {
             local tag=$1
 
-            if curl -Ls "${url}" | grep -q "${pkg}-${version}.*${tag}"; then
+            if curl -Ls "${url}" | grep -q "${pkg}-${version}.*${tag}.*loongarch64"; then
               echo "build_${tag}=false" >> $GITHUB_OUTPUT
               echo "${tag} wheel already exists."
             else
@@ -129,7 +129,9 @@ jobs:
 
       - name: Build wheels
         if: ${{ env.SKIP != 'true' }}
-        run: cibuildwheel
+        run: |
+          pip3 install -i https://lpypi.loongnix.cn/loongson/pypi/+simple cibuildwheel==2.22.0
+          cibuildwheel
         env:
           PIP_EXTRA_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
           PIP_INDEX_URL: "https://pypi.tuna.tsinghua.edu.cn/simple"

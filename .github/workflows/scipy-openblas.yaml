@@ -72,7 +72,7 @@ jobs:
 
         openblas_commit=$(echo ${version} | awk -F. '{print $1"."$2"."$3}')
 
-        if curl -s "${url}" | grep $(echo ${version} | cut -d 'v' -f2) | grep -q ${platform}; then
+        if curl -s "${url}" | grep $(echo ${version} | cut -d 'v' -f2) | grep -q ${platform}.*loongarch64; then
             echo "SKIP=true" >> $GITHUB_ENV
             echo "${platform} wheels already exists."
         else

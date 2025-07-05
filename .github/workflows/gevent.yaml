@@ -43,7 +43,7 @@ jobs:
             version="$(curl -s ${upstream_url} | jq -r '.info.version')"
           fi
 
-          if curl -s ${url} | grep -q ${pkg}-${version}-.*${platform}; then
+          if curl -s ${url} | grep -q ${pkg}-${version}-.*${platform}.*loongarch64; then
             echo "SKIP=true" >> $GITHUB_ENV
             echo "${platform} wheels already exists."
           else
@@ -76,6 +76,7 @@ jobs:
           GEVENTTEST_SKIP_ALL: 1
           GITHUB_ACTIONS: 1
         run: |
+          pip3 install -i https://lpypi.loongnix.cn/loongson/pypi/+simple cibuildwheel==2.22.0
           sed -i 's@GEVENT_MANYLINUX_NAME@PIP_EXTRA_INDEX_URL -e PIP_INDEX_URL -e GEVENT_MANYLINUX_NAME@g' scripts/releases/make-manylinux
           scripts/releases/make-manylinux
 
