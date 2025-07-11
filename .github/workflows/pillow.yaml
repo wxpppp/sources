@@ -37,7 +37,7 @@ jobs:
             version="$(curl -s ${upstream_url} | jq -r '.info.version')"
           fi
 
-          if curl -s ${url} | grep ${version} | grep -q ${platform}; then
+          if curl -s ${url} | grep ${version} | grep -q ${platform}.*loongarch64; then
             echo "SKIP=true" >> $GITHUB_ENV
             echo "${platform} wheels already exists."
           else
@@ -62,10 +62,10 @@ jobs:
       - name: Build wheel
         if: ${{ env.SKIP != 'true' }}
         run: |
+          pip3 install --force-reinstall --no-cache cibuildwheel==3.0.0
           cibuildwheel
         env:
           PIP_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
-          PIP_EXTRA_INDEX_URL: "https://pypi.tuna.tsinghua.edu.cn/simple"
           CIBW_ARCHS: "loongarch64"
           CIBW_BUILD: "*-${{ matrix.platform }}_loongarch64"
           CIBW_BEFORE_ALL_LINUX: |
@@ -75,7 +75,6 @@ jobs:
           CIBW_TEST_SKIP: "*"
           CIBW_ENVIRONMENT_PASS_LINUX: |
             PIP_INDEX_URL
-            PIP_EXTRA_INDEX_URL
 
       - name: Upload wheels
         if: ${{ env.SKIP != 'true' }}
