@@ -1,8 +1,8 @@
 name: build scipy-openblas wheel
 
 on:
-  schedule:
-    - cron: '0 5 * * *'
+#  schedule:
+#    - cron: '0 5 * * *'
   workflow_dispatch:
     inputs:
       version:
@@ -47,6 +47,22 @@ jobs:
       PLAT: ${{ matrix.PLAT }}
 
     steps:
+    - name: Cache previous upstream commit SHA
+      id: cache-commit
+      uses: actions/cache@v4
+      with:
+        path: ./last_upstream_commit.txt
+        key: upstream-commit-sha
+
+    - name: Read last saved commit
+      id: last_commit
+      run: |
+        if [ -f ./last_upstream_commit.txt ]; then
+          echo "last_sha=$(cat ./last_upstream_commit.txt)" >> "$GITHUB_OUTPUT"
+        else
+          echo "last_sha=" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Check if exists
       run: |
         case $INTERFACE64 in
@@ -62,23 +78,22 @@ jobs:
 
         platform="$MB_ML_LIBC"
         url="https://lpypi.loongnix.cn/loongson/pypi/+simple/${pkg}/"
-        repo="loong64/openblas-libs"
-        upstream_url="https://api.github.com/repos/MacPython/openblas-libs/releases/latest"
-
+        repo="MacPython/openblas-libs"
+        upstream_url="https://raw.githubusercontent.com/MacPython/openblas-libs/main/pyproject.toml"
         if [[ "${version}" == "latest" ]]; then
-          version="$(curl -s "${upstream_url}" | jq -r ".tag_name")"
-          repo="MacPython/openblas-libs"
+          version=$(curl -s "${upstream_url}" | grep '^version' | sed -E 's/version *= *"([^"]+)"/\1/')
         fi
 
-        openblas_commit=$(echo ${version} | awk -F. '{print $1"."$2"."$3}')
+        openblas_commit=v$(echo ${version} | awk -F. '{print $1"."$2"."$3}')
 
-        if curl -s "${url}" | grep $(echo ${version} | cut -d 'v' -f2) | grep -q ${platform}.*loongarch64; then
+        if curl -s "${url}" | grep ${version} | grep -q ${platform}.*loongarch64; then
             echo "SKIP=true" >> $GITHUB_ENV
             echo "${platform} wheels already exists."
         else
             echo "SKIP=false" >> $GITHUB_ENV
             echo "${platform} wheels not found, continue building"
         fi
+
 
         echo "VERSION=${version}" >> $GITHUB_ENV
         echo "REPO=${repo}" >> $GITHUB_ENV
