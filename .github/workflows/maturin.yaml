@@ -125,16 +125,18 @@ jobs:
           curl -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
           echo "/root/.cargo/bin" >> $GITHUB_PATH
 
-      - name: Build maturin binary
+      - name: download maturin binary
         if: ${{ env.SKIP != 'true' }}
-        run: cargo build --release
+        run: pipx install maturin --pip-args="--only-binary=:all:" --force
+        env:
+          PIP_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
 
       - name: Build wheel
         if: ${{ env.SKIP != 'true' }}
         run: |
-          ./target/release/maturin build --release -b bin -o dist --target ${{ matrix.target }} --compatibility ${{ matrix.platform }} --features password-storage
+          maturin build --release -b bin -o dist --target ${{ matrix.target }} --compatibility ${{ matrix.platform }} --features password-storage
         env:
-          PIP_EXTRA_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
+          PIP_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
 
   upload:
     name: Upload wheels
