@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    name: Build wheel for ${{ matrix.python[0] }}-${{ matrix.platform }}-loongarch64
+    name: Build scipy wheel for ${{ matrix.python[0] }}-${{ matrix.platform }}-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
