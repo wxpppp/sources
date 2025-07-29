@@ -19,7 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [loongarch64-abi2.0]
-        python: ["cp39", "cp310", "cp311", "cp312", "cp313", "cp313t"]
+        python: ["cp39", "cp310", "cp311", "cp312", "cp313", "cp313t", "cp314", "cp314t"]
         platform: ["manylinux", "musllinux"]
     steps:
       - name: Check if exists
@@ -66,11 +66,10 @@ jobs:
       - name: Build wheel
         if: ${{ env.SKIP != 'true' }}
         run: |
-          pip3 install -i https://lpypi.loongnix.cn/loongson/pypi/+simple cibuildwheel==2.22.0
+          pip3 install -i https://lpypi.loongnix.cn/loongson/pypi/+simple cibuildwheel==3.0.0
           cibuildwheel
         env:
-          PIP_EXTRA_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
-          PIP_INDEX_URL: "https://pypi.tuna.tsinghua.edu.cn/simple"
+          PIP_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
           CIBW_ARCHS: "loongarch64"
           CIBW_BEFORE_BUILD: python -m pip install --upgrade pip setuptools
           CIBW_BUILD: "${{ matrix.python }}-${{ matrix.platform }}_loongarch64"
@@ -80,7 +79,6 @@ jobs:
           CIBW_ENABLE: cpython-freethreading ${{ env.ALLOW_PRERELEASES == 'true' && 'cpython-prerelease' || '' }}
           CIBW_ENVIRONMENT_PASS_LINUX: >
             PIP_INDEX_URL
-            PIP_EXTRA_INDEX_URL
 
       - name: Upload wheels
         if: ${{ env.SKIP != 'true' }}
