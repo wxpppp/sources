@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    name: Build ${{ matrix.python }} ${{ matrix.platform }} wheel on loongarch64
+    name: Build opencv-python ${{ matrix.python }} ${{ matrix.platform }} wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
