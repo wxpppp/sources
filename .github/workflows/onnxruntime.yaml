@@ -12,7 +12,7 @@ env:
   PACKAGE: onnxruntime
 jobs:
   build:
-    name: Build onnxruntime ${{ matrix.python }} ${{ matrix.platform }} wheel on loongarch64
+    name: Build onnxruntime ${{ matrix.python }} ${{ matrix.platform }} wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -66,8 +66,8 @@ jobs:
       - name: Set permissions
         if: ${{ env.SKIP != 'true' }}
         run: |
-          mkdir -p /tmp/onnxruntime/build-${{ env.VERSION }}
-          sudo chmod 777 /tmp/onnxruntime/build-${{ env.VERSION }}
+          sudo mkdir -p /cloud/tmp/onnxruntime/build-${{ env.VERSION }}
+          sudo chmod 777 /cloud/tmp/onnxruntime/build-${{ env.VERSION }}
 
       - name: Patch source
         if: ${{ env.SKIP != 'true' }}
@@ -82,7 +82,7 @@ jobs:
         run: |
           docker run --rm \
             --volume $(pwd):/onnxruntime_src \
-            --volume /tmp/onnxruntime/build-${{ env.VERSION }}:/onnxruntime_src/build \
+            --volume /cloud/tmp/onnxruntime/build-${{ env.VERSION }}:/onnxruntime_src/build \
             --workdir /onnxruntime_src \
             --env ALLOW_RELEASED_ONNX_OPSET_ONLY=0 \
             --env https_proxy=${{ secrets.PROXY_URL }} \
