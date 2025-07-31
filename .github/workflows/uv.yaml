@@ -152,28 +152,15 @@ jobs:
           ${{ env.MODULE_NAME }} --help
           uvx --help
 
-  upload:
-    name: Upload wheels
-    needs: [check-wheel-exists, build]
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [loongarch64-abi2.0]
-    env:
-      TWINE_USERNAME: ${{ secrets.INDEX_NAME  }}
-      TWINE_PASSWORD: ${{ secrets.INDEX_TOKEN }}
-      build_manylinux: ${{ needs.check-wheel-exists.outputs.build_manylinux }}
-      build_musllinux: ${{ needs.check-wheel-exists.outputs.build_musllinux }}
-    steps:
-      - name: Upload manylinux wheel
-        if: ${{ env.build_manylinux == 'true' }}
+      - name: Upload wheel
+        if: ${{ env.SKIP != 'true' }}
         run: |
-          ls dist/*-manylinux_*.whl || exit 1
-          twine upload --repository-url https://lpypi.loongnix.cn/loongson/pypi dist/*-manylinux_*.whl
-
-      - name: Upload musllinux wheel
-        if: ${{ env.build_musllinux == 'true' }}
-        run: |
-          ls dist/*-musllinux_*.whl || exit 1
-          twine upload --repository-url https://lpypi.loongnix.cn/loongson/pypi dist/*-musllinux_*.whl
+          ls dist/${{ env.PACKAGE_NAME }}*${{ matrix.platform }}*.whl || exit 1
+          export PATH="/root/.cargo/bin:$PATH"
+          pipx install twine
+          twine upload --repository-url https://lpypi.loongnix.cn/loongson/pypi dist/${{ env.PACKAGE_NAME }}*${{ matrix.platform }}*.whl
+        env:
+          PIP_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
+          PIP_EXTRA_INDEX_URL: "https://pypi.tuna.tsinghua.edu.cn/simple"
+          TWINE_USERNAME: ${{ secrets.INDEX_NAME  }}
+          TWINE_PASSWORD: ${{ secrets.INDEX_TOKEN }}
