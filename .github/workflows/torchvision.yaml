@@ -69,12 +69,13 @@ jobs:
         env:
           CIBW_MANYLINUX_LOONGARCH64_IMAGE: "ghcr.io/loong64/manylinuxloongarch64-builder:cpu-loongarch64"
           CIBW_ARCHS: "loongarch64"
+          CIBW_BEFORE_BUILD_LINUX: >
+            pip3 install auditwheel==6.2.0
           CIBW_BUILD: "${{ matrix.platform }}_loongarch64"
           CIBW_SKIP: "pp*"
           CIBW_TEST_SKIP: "*"
           CIBW_ENVIRONMENT_LINUX: >
-            PIP_EXTRA_INDEX_URL="https://lpypi.loongnix.cn/loongson/pypi/+simple"
-            PIP_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+            PIP_INDEX_URL="https://lpypi.loongnix.cn/loongson/pypi/+simple"
             BUILD_VERSION=${{ env.BUILD_VERSION }}
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
             mkdir -p dist {dest_dir} &&
