@@ -68,6 +68,8 @@ jobs:
         run: |
           sudo mkdir -p /cloud/tmp/onnxruntime/build-${{ env.VERSION }}
           sudo chmod 777 /cloud/tmp/onnxruntime/build-${{ env.VERSION }}
+          mkdir -p wheelhouse
+          chmod 777 wheelhouse
 
       - name: Patch source
         if: ${{ env.SKIP != 'true' }}
