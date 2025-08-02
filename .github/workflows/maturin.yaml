@@ -8,33 +8,20 @@ on:
       version:
         required: false
         default: 'latest'
-
+env:
+  PACKAGE_NAME: maturin
 jobs:
   check-wheel-exists:
     name: Check if exists
     runs-on: loongarch64-abi2.0
     outputs:
       version: ${{ steps.check.outputs.version }}
-      build_manylinux: ${{ steps.check.outputs.build_manylinux }}
-      build_musllinux: ${{ steps.check.outputs.build_musllinux }}
+      build: ${{ steps.check.outputs.build }}
     steps:
       - name: Check if wheels exist
         id: check
         run: |
-          pkg=maturin
-
-          check_wheel() {
-            local tag=$1
-
-            if curl -Ls "${url}" | grep -q "${pkg}-${version}.*${tag}.*loongarch64"; then
-              echo "build_${tag}=false" >> $GITHUB_OUTPUT
-              echo "${tag} wheel already exists."
-            else
-              echo "build_${tag}=true" >> $GITHUB_OUTPUT
-              echo "${tag} wheel not found, continue building."
-            fi
-
-          }
+          pkg=${{ env.PACKAGE_NAME }}
 
           if [[ "${{ github.event_name }}" == "schedule" ]]; then
             version="latest"
@@ -49,20 +36,15 @@ jobs:
             version="$(curl -s ${upstream_url} | jq -r '.info.version')"
           fi
 
+          if curl -Ls "${url}" | grep -q "${pkg}-${version}.*loongarch64"; then
+            echo "wheel has already exist"
+            echo "build=false" >> $GITHUB_OUTPUT
+          else
+            echo "wheel not found, continue building."
+            echo "build=true" >> $GITHUB_OUTPUT
+          fi
+
           echo "version=v${version}" >> $GITHUB_OUTPUT
-
-          for tag in manylinux musllinux; do
-            check_wheel "$tag"
-          done
-
-  debug:
-    name: Debug outputs
-    needs: check-wheel-exists
-    runs-on: loongarch64-abi2.0
-    steps:
-      - run: |
-          echo "build_manylinux=${{ needs.check-wheel-exists.outputs.build_manylinux }}"
-          echo "build_musllinux=${{ needs.check-wheel-exists.outputs.build_musllinux }}"
 
   download:
     name: Download source
@@ -74,7 +56,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [loongarch64-abi2.0]
-    if: ${{ needs.check-wheel-exists.outputs.build_manylinux == 'true' || needs.check-wheel-exists.outputs.build_musllinux == 'true' }}
+    if: ${{ needs.check-wheel-exists.outputs.build == 'true' }}
     steps:
       - name: Clean workspace
         run: safe-rm -rf * .*
@@ -92,19 +74,16 @@ jobs:
   build:
     name: Build maturin ${{ matrix.platform }} wheel on ${{ matrix.os }}
     needs: [check-wheel-exists, download]
+    if: ${{ needs.check-wheel-exists.outputs.build == 'true' }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: loongarch64-abi2.0
-            image: "lcr.loongnix.cn/pypa/manylinux_2_38_loongarch64"
-            target: "loongarch64-unknown-linux-gnu"
-            platform: "manylinux_2_38"
-          - os: loongarch64-abi2.0
             image: "lcr.loongnix.cn/pypa/musllinux_1_2_loongarch64"
             target: "loongarch64-unknown-linux-musl"
-            platform: "musllinux_1_2"
+            platform: "manylinux_2_36 musllinux_1_2"
     container:
       image: ${{ matrix.image }}
       env:
@@ -112,54 +91,31 @@ jobs:
         CARGO_HOME: /root/.cargo
         CARGO_PROFILE_RELEASE_LTO: "${{ matrix.platform.lto || 'fat' }}"
         HTTPS_PROXY: ${{ secrets.PROXY_URL }}
-        SKIP: true
     steps:
-      - name: Check if wheel exists
-        if: ${{ (matrix.platform == 'manylinux_2_38' && needs.check-wheel-exists.outputs.build_manylinux == 'true') || (matrix.platform  == 'musllinux_1_2' && needs.check-wheel-exists.outputs.build_musllinux == 'true') }}
-        run:
-          echo "SKIP=false" >> $GITHUB_ENV
-
       - name: Setup rust-toolchain
-        if: ${{ env.SKIP != 'true' }}
         run: |
           curl -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
           echo "/root/.cargo/bin" >> $GITHUB_PATH
 
       - name: download maturin binary
-        if: ${{ env.SKIP != 'true' }}
         run: pipx install maturin --pip-args="--only-binary=:all:" --force
         env:
           PIP_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
 
       - name: Build wheel
-        if: ${{ env.SKIP != 'true' }}
         run: |
+          apk add bzip2-static
           maturin build --release -b bin -o dist --target ${{ matrix.target }} --compatibility ${{ matrix.platform }} --features password-storage
         env:
           PIP_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
+          CARGO_TARGET_LOONGARCH64_UNKNOWN_LINUX_MUSL_RUSTFLAGS: "-C target-feature=+crt-static"
 
-  upload:
-    name: Upload wheels
-    needs: [check-wheel-exists, build]
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [loongarch64-abi2.0]
-    env:
-      TWINE_USERNAME: ${{ secrets.INDEX_NAME  }}
-      TWINE_PASSWORD: ${{ secrets.INDEX_TOKEN }}
-      build_manylinux: ${{ needs.check-wheel-exists.outputs.build_manylinux }}
-      build_musllinux: ${{ needs.check-wheel-exists.outputs.build_musllinux }}
-    steps:
-      - name: Upload manylinux wheel
-        if: ${{ env.build_manylinux == 'true' }}
+      - name: Upload wheel
         run: |
-          ls dist/*-manylinux_*.whl || exit 1
-          twine upload --repository-url https://lpypi.loongnix.cn/loongson/pypi dist/*-manylinux_*.whl
-
-      - name: Upload musllinux wheel
-        if: ${{ env.build_musllinux == 'true' }}
-        run: |
-          ls dist/*-musllinux_*.whl || exit 1
-          twine upload --repository-url https://lpypi.loongnix.cn/loongson/pypi dist/*-musllinux_*.whl
+           ls dist/${{ env.PACKAGE_NAME }}*.whl || exit 1
+           pipx install twine
+           twine upload --repository-url https://lpypi.loongnix.cn/loongson/pypi dist/${{ env.PACKAGE_NAME }}*.whl
+        env:
+          PIP_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
+          TWINE_USERNAME: ${{ secrets.INDEX_NAME  }}
+          TWINE_PASSWORD: ${{ secrets.INDEX_TOKEN }}
