@@ -81,6 +81,7 @@ jobs:
         env:
           CIBW_MANYLINUX_LOONGARCH64_IMAGE: "ghcr.io/loong64/manylinuxloongarch64-builder:cpu-loongarch64"
           CIBW_ARCHS: "loongarch64"
+          CIBW_BEFORE_BUILD: pip install -r requirements.txt
           CIBW_BUILD: "${{ matrix.platform }}_loongarch64"
           CIBW_SKIP: "pp*"
           CIBW_TEST_SKIP: "*"
