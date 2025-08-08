@@ -86,6 +86,7 @@ jobs:
           CIBW_ENVIRONMENT_LINUX: >
             PIP_INDEX_URL="https://lpypi.loongnix.cn/loongson/pypi/+simple"
             BUILD_VERSION=${{ env.BUILD_VERSION }}
+            HTTPS_PROXY=${{ secrets.PROXY_URL }}
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
             mkdir -p dist {dest_dir} &&
             cp -f {wheel} dist &&
