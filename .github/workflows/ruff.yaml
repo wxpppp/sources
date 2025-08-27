@@ -117,6 +117,19 @@ jobs:
         env:
           RUSTUP_INIT_SKIP_PATH_CHECK: "1"
 
+      - name: Patch source
+        if: ${{ env.SKIP != 'true' && matrix.platform  == 'musllinux_1_2' }}
+        run: |
+          cargo vendor --quiet
+          cd vendor/rustix && \
+          wget -qO - https://raw.githubusercontent.com/Loongson-Cloud-Community/uv/refs/heads/dev/fix-rustix-STATX_A_B-is-ambiguous-error.patch | patch -p1
+
+          cd "$GITHUB_WORKSPACE"
+          cat >> Cargo.toml <<'EOF'
+          [patch.crates-io]
+          rustix = { package = "rustix", version = "1.0.8", path = "vendor/rustix" }
+          EOF
+
       - name: Build wheel
         if: ${{ env.SKIP != 'true' }}
         run: |
@@ -124,6 +137,7 @@ jobs:
           maturin build --out dist --compatibility ${{ matrix.platform }}
         env:
           PIP_EXTRA_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
+          RUST_LIBC_MUSL_GEQ_1_2_3: 1
 
   upload:
     name: Upload wheels
