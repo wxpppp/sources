@@ -63,16 +63,17 @@ jobs:
       - name: Build wheel
         if: ${{ env.SKIP != 'true' }}
         run: |
+          sed -i '/linux-riscv64-image/d' pyproject.toml
           pip3 install -i https://lpypi.loongnix.cn/loongson/pypi/+simple cibuildwheel==2.22.0
           cibuildwheel
         env:
-          PIP_EXTRA_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
-          PIP_INDEX_URL: "https://pypi.tuna.tsinghua.edu.cn/simple"
+          PIP_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
+          HTTPS_PROXY: ${{ secrets.PROXY_URL }} 
           CIBW_ARCHS: "loongarch64"
           CIBW_BUILD: "cp39-${{ matrix.platform }}_loongarch64"
           CIBW_ENVIRONMENT_PASS_LINUX: >
             PIP_INDEX_URL
-            PIP_EXTRA_INDEX_URL
+            HTTPS_PROXY
 
       - name: Upload wheels
         if: ${{ env.SKIP != 'true' }}
