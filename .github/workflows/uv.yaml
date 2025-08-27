@@ -136,6 +136,15 @@ jobs:
         run: |
           curl -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
 
+      - name: Patch source
+        if: ${{ env.SKIP != 'true' && matrix.platform == 'musllinux_1_2' }}
+        run: |
+          export PATH="/root/.cargo/bin:$PATH"
+          cargo vendor
+          wget -qO - https://raw.githubusercontent.com/Loongson-Cloud-Community/uv/refs/heads/dev/uv-Cargo.toml-add-rustix-vendor.patch | patch -p1
+          cd vendor/rustix && \
+          wget -qO - https://raw.githubusercontent.com/Loongson-Cloud-Community/uv/refs/heads/dev/fix-rustix-STATX_A_B-is-ambiguous-error.patch | patch -p1
+
       - name: Build wheel
         if: ${{ env.SKIP != 'true' }}
         run: |
@@ -144,6 +153,7 @@ jobs:
           maturin build --release --out dist --features self-update --target ${{ matrix.target }} --compatibility ${{ matrix.platform }}
         env:
           PIP_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
+          RUST_LIBC_MUSL_GEQ_1_2_3: 1
 
       - name: Test wheel
         if: ${{ env.SKIP != 'true' }}
