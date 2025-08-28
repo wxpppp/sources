@@ -72,6 +72,7 @@ jobs:
           PIP_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
           CIBW_ARCHS: "loongarch64"
           CIBW_BUILD: "${{ matrix.python }}-${{ matrix.platform }}_loongarch64"
+          CIBW_BUILD_VERBOSITY: 3
           CIBW_TEST_SKIP: "*"
           CIBW_ENVIRONMENT_PASS_LINUX: |
             PIP_INDEX_URL
