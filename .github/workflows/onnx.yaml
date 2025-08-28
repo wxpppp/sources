@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    name: Build wheel for ${{ matrix.python }}-${{ matrix.platform }}-loongarch64
+    name: Build onnx wheel for ${{ matrix.python }}-${{ matrix.platform }}-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -47,7 +47,7 @@ jobs:
             echo "${platform} wheels not found, continue building"
           fi
 
-          echo "VERSION=${version}" >> $GITHUB_ENV
+          echo "VERSION=v${version}" >> $GITHUB_ENV
 
       - name: Clean workspace
         if: ${{ env.SKIP != 'true' }}
@@ -56,10 +56,11 @@ jobs:
 
       - name: Download source
         if: ${{ env.SKIP != 'true' }}
-        uses: wxpppp/sources@main
+        uses: actions/checkout@v4
         with:
-          name: onnx
-          version: ${{ env.VERSION }}
+          repository: onnx/onnx
+          ref: ${{ env.VERSION }}
+          submodules: true
 
       - name: Build wheel
         if: ${{ env.SKIP != 'true' }}
@@ -67,14 +68,14 @@ jobs:
           pip3 install -i https://lpypi.loongnix.cn/loongson/pypi/+simple cibuildwheel==2.22.0
           cibuildwheel
         env:
+          HTTPS_PROXY: ${{ secrets.PROXY_URL }} 
           PIP_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
-          PIP_EXTRA_INDEX_URL: "https://pypi.tuna.tsinghua.edu.cn/simple"
           CIBW_ARCHS: "loongarch64"
           CIBW_BUILD: "${{ matrix.python }}-${{ matrix.platform }}_loongarch64"
           CIBW_TEST_SKIP: "*"
           CIBW_ENVIRONMENT_PASS_LINUX: |
             PIP_INDEX_URL
-            PIP_EXTRA_INDEX_URL
+            HTTPS_PROXY
 
       - name: Upload wheels
         if: ${{ env.SKIP != 'true' }}
