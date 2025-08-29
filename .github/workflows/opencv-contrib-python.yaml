@@ -84,7 +84,6 @@ jobs:
         run: |
           sed -i '/^git submodule update --init multibuild[[:space:]]*$/d' scripts/build.sh
           git submodule update --init multibuild
-          # sed -i '/^cd \/io$/a git config --global --add safe.directory /io' multibuild/docker_build_wrap.sh
           sed -i '/-e MB_ML_LIBC="\$libc" \\/a\        -e HTTPS_PROXY="$HTTPS_PROXY" \\' multibuild/travis_linux_steps.sh
 
       - name: Build a package
@@ -97,7 +96,7 @@ jobs:
         if: ${{ env.SKIP != 'true' }}
         run: |
           ls wheelhouse/*.whl || exit 1
-          twine upload --repository-url https://lpypi.loongnix.cn/loongson/pypi wheelhouse/*-${{ matrix.platform }}_*.whl
+          twine upload --repository-url https://lpypi.loongnix.cn/loongson/pypi wheelhouse/*${{ matrix.platform }}.whl
         env:
           TWINE_USERNAME: ${{ secrets.INDEX_NAME  }}
           TWINE_PASSWORD: ${{ secrets.INDEX_TOKEN }}
