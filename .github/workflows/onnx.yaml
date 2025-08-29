@@ -65,7 +65,7 @@ jobs:
       - name: Build wheel
         if: ${{ env.SKIP != 'true' }}
         run: |
-          pip3 install -i https://lpypi.loongnix.cn/loongson/pypi/+simple cibuildwheel==2.22.0
+          pip3 install -i https://lpypi.loongnix.cn/loongson/pypi/+simple cibuildwheel==3.0.0
           cibuildwheel
         env:
           HTTPS_PROXY: ${{ secrets.PROXY_URL }} 
