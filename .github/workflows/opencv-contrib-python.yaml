@@ -31,7 +31,7 @@ jobs:
       MB_ML_VER: 2_38
       TRAVIS_BUILD_DIR: ${{ github.workspace }}
       CONFIG_PATH: travis_config.sh
-      DOCKER_IMAGE: ghcr.io/loongson-cloud-community/opencv-python-manylinux_2_38-loongarch64:20250828_abi2.0
+      DOCKER_IMAGE: ghcr.io/loongson-cloud-community/opencv-python-manylinux_2_38-loongarch64:20250829_abi2.0
       USE_CCACHE: 0
       UNICODE_WIDTH: 32
       PLAT: loongarch64
