@@ -131,13 +131,14 @@ jobs:
 
       - name: Patch source
         if: ${{ env.SKIP != 'true' && matrix.platform  == 'musllinux_1_2' }}
+        working-directory: hf_xet
         run: |
           export PATH="/root/.cargo/bin:$PATH"
           cargo vendor --quiet
           cd vendor/rustix && \
           wget -qO - https://raw.githubusercontent.com/Loongson-Cloud-Community/uv/refs/heads/dev/fix-rustix-STATX_A_B-is-ambiguous-error.patch | patch -p1
 
-          cd "$GITHUB_WORKSPACE"
+          cd ../..
           cat >> Cargo.toml <<'EOF'
           [patch.crates-io]
           rustix = { package = "rustix", version = "1.0.8", path = "vendor/rustix" }
@@ -145,7 +146,9 @@ jobs:
 
       - name: Build wheel
         if: ${{ env.SKIP != 'true' }}
+        working-directory: hf_xet
         run: |
+          export PATH="/root/.cargo/bin:$PATH"
           pipx install maturin
           maturin build --release -o dist --target ${{ matrix.target }} --compatibility ${{ matrix.platform }}
         env:
@@ -156,6 +159,9 @@ jobs:
     name: Upload wheels
     needs: [check-wheel-exists, build]
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: hf_xet
     strategy:
       fail-fast: false
       matrix:
