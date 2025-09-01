@@ -20,10 +20,10 @@ jobs:
         include:
           - os: loongarch64-abi2.0 
             platform: "manylinux_2_38_loongarch64"
-            image: "lcr.loongnix.cn/pypa/manylinux_2_38_loongarch64"
+            image: "ghcr.io/loong64/manylinux_2_38_loongarch64"
           - os: loongarch64-abi2.0
             platform: "musllinux_1_2_loongarch64"
-            image: "lcr.loongnix.cn/pypa/musllinux_1_2_loongarch64"
+            image: "ghcr.io/loong64/musllinux_1_2_loongarch64"
     steps:
       - name: Check if exists
         run: |
@@ -65,21 +65,24 @@ jobs:
         with:
           repository: ${{ env.PACKAGE }}/${{ env.PACKAGE }}
           ref: ${{ env.VERSION }}
+      
+      # There is no cp314 cffi package on lpypi now.
+      - name: Patch source
+        if: ${{ env.SKIP != 'true' }}
+        run: |
+          sed -i 's/314,313/313/g' scripts/releases/make-manylinux
+          sed -i 's@GEVENT_MANYLINUX_NAME@PIP_EXTRA_INDEX_URL -e PIP_INDEX_URL -e GEVENT_MANYLINUX_NAME@g' scripts/releases/make-manylinux
 
       - name: Build wheel
         if: ${{ env.SKIP != 'true' }}
         env:
-          PIP_EXTRA_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
-          PIP_INDEX_URL: "https://pypi.tuna.tsinghua.edu.cn/simple"
+          PIP_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
           DOCKER_IMAGE: ${{ matrix.image }}
           GEVENT_MANYLINUX_NAME: ${{ matrix.platform }}
           GEVENTTEST_SKIP_ALL: 1
           GITHUB_ACTIONS: 1
         run: |
-          pip3 install -i https://lpypi.loongnix.cn/loongson/pypi/+simple cibuildwheel==3.0.0
-          sed -i 's@GEVENT_MANYLINUX_NAME@PIP_EXTRA_INDEX_URL -e PIP_INDEX_URL -e GEVENT_MANYLINUX_NAME@g' scripts/releases/make-manylinux
           scripts/releases/make-manylinux
-
 
       - name: Upload wheels
         if: ${{ env.SKIP != 'true' }}
