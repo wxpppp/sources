@@ -11,7 +11,7 @@ on:
 
 jobs:
   check-wheel-exists:
-    name: Check if exists
+    name: Check if ruff exists
     runs-on: loongarch64-abi2.0
     outputs:
       version: ${{ steps.check.outputs.version }}
@@ -56,7 +56,7 @@ jobs:
           done
 
   debug:
-    name: Debug outputs
+    name: Debug ruff outputs
     needs: check-wheel-exists
     runs-on: loongarch64-abi2.0
     steps:
@@ -93,9 +93,11 @@ jobs:
         include:
           - os: loongarch64-abi2.0
             image: "lcr.loongnix.cn/pypa/manylinux_2_38_loongarch64"
+            target: "loongarch64-unknown-linux-gnu"
             platform: "manylinux_2_38"
           - os: loongarch64-abi2.0
             image: "lcr.loongnix.cn/pypa/musllinux_1_2_loongarch64"
+            target: "loongarch64-unknown-linux-musl"
             platform: "musllinux_1_2"
     container:
       image: ${{ matrix.image }}
@@ -134,13 +136,13 @@ jobs:
         if: ${{ env.SKIP != 'true' }}
         run: |
           pipx install maturin
-          maturin build --out dist --compatibility ${{ matrix.platform }}
+          maturin build --release --locked --out dist --target ${{ matrix.target }} --compatibility ${{ matrix.platform }}
         env:
           PIP_EXTRA_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
           RUST_LIBC_MUSL_GEQ_1_2_3: 1
 
   upload:
-    name: Upload wheels
+    name: Upload ruff wheels
     needs: [check-wheel-exists, build]
     runs-on: ${{ matrix.os }}
     strategy:
