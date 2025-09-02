@@ -108,6 +108,15 @@ jobs:
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
         env:
           RUSTUP_INIT_SKIP_PATH_CHECK: "1"
+      
+      # Skip turbojpeg require-simd feature
+      - name: Patch source
+        run: |
+          cargo vendor
+          # Remove 'require-simd' from turbojpeg/Cargo.toml
+          sed -i -e '/^default = \[/,/]/ s/"require-simd",\?//g' -e '/^require-simd *=/d' vendor/turbojpeg/Cargo.toml
+          # Reset kornia-io/Cargo.toml turbojpeg path
+          sed -i 's|^turbojpeg = { version = "1\.2", optional = true }|turbojpeg = { path = "../../vendor/turbojpeg", optional = true }|' crates/kornia-io/Cargo.toml
 
       - name: Build wheel
         run: |
