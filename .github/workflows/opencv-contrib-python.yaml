@@ -41,7 +41,7 @@ jobs:
     steps:
       - name: Check if exists
         run: |
-          pkg=opencv_contrib_python
+          pkg=opencv-contrib-python
 
           if [[ "${{ github.event_name }}" == "schedule" ]]; then
             version="latest"
@@ -56,7 +56,7 @@ jobs:
             version="$(curl -s ${upstream_url} | jq -r '.info.version')"
           fi
 
-          if curl -s ${url} | grep ${version} | grep -q ${pkg}.*loongarch64; then
+          if curl -s ${url} | grep ${version} | grep -q opencv_contrib_python.*loongarch64; then
             echo "SKIP=true" >> $GITHUB_ENV
             echo "${pkg}-${version}-${platform} wheel already exists."
           else
