@@ -20,12 +20,12 @@ jobs:
       - name: Check if kornia-rs wheels exist
         id: check
         run: |
-          pkg=kornia_rs
+          pkg=kornia-rs
 
           check_wheel() {
             local tag=$1
 
-            if curl -s "${url}" | grep -q "${pkg}-${version}.*${tag}.*loongarch64"; then
+            if curl -s "${url}" | grep -q "kornia_rs-${version}.*${tag}.*loongarch64"; then
               echo "build_${tag}=false" >> $GITHUB_OUTPUT
               echo "${tag} wheel already exists."
             else
