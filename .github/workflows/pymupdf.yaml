@@ -65,6 +65,7 @@ jobs:
         if: ${{ env.SKIP != 'true' }}
         run: |
           wget -qO - https://raw.githubusercontent.com/Loongson-Cloud-Community/PyMuPDF/refs/heads/dev/gh-release-add-loong64-support.patch | patch -p1
+          wget -qO - https://raw.githubusercontent.com/Loongson-Cloud-Community/PyMuPDF/refs/heads/dev/gh-release-skip-workflow-unimportant-test.patch | patch -p1
           sed -i "s/pip install cibuildwheel/pip install cibuildwheel==3.0.0/g" scripts/gh_release.py
 
       - name: Build wheel
