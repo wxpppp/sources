@@ -141,7 +141,7 @@ jobs:
         run: |
           export PATH="/root/.cargo/bin:$PATH"
           cargo vendor
-          wget -qO - https://raw.githubusercontent.com/Loongson-Cloud-Community/uv/refs/heads/dev/uv-Cargo.toml-add-rustix-vendor.patch | patch -p1
+          sed -i '/^\[patch\.crates-io\]/a rustix = { package = "rustix", version = "1.0.8", path = "vendor/rustix" }' Cargo.toml
           cd vendor/rustix && \
           wget -qO - https://raw.githubusercontent.com/Loongson-Cloud-Community/uv/refs/heads/dev/fix-rustix-STATX_A_B-is-ambiguous-error.patch | patch -p1
 
