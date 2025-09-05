@@ -136,7 +136,7 @@ jobs:
         if: ${{ env.SKIP != 'true' }}
         run: |
           pipx install maturin
-          maturin build --release --locked --out dist --target ${{ matrix.target }} --compatibility ${{ matrix.platform }}
+          maturin build --release --out dist --target ${{ matrix.target }} --compatibility ${{ matrix.platform }}
         env:
           PIP_EXTRA_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
           RUST_LIBC_MUSL_GEQ_1_2_3: 1
