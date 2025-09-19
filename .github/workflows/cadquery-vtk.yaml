@@ -73,6 +73,7 @@ jobs:
           --env VTK=${{ env.VTK }} \
           --env VTK_MAJOR=${{ env.VTK_MAJOR }} \
           --env HTTPS_PROXY=${{ secrets.PROXY_URL }} \
+          --env HTTP_PROXY=${{ secrets.PROXY_URL }} \
           --workdir /io \
           ${{ matrix.image }} \
           bash -c "apt update && apt install -y git && chmod +x build-cadquery-vtk-wheel.sh && ./build-cadquery-vtk-wheel.sh"
