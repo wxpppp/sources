@@ -19,7 +19,7 @@ jobs:
       matrix:
         os: [loongarch64-abi2.0]
         platform: ["manylinux"]
-        image: ["lcr.loongnix.cn/library/python:3.13-slim-trixie"]
+        image: ["ghcr.io/loongson-cloud-community/cadquery-vtk-py313-build-base"]
     steps:
       - name: Check if exists
         run: |
@@ -75,8 +75,8 @@ jobs:
           --env HTTPS_PROXY=${{ secrets.PROXY_URL }} \
           --env HTTP_PROXY=${{ secrets.PROXY_URL }} \
           --workdir /io \
-          ${{ matrix.image }} \
-          bash -c "apt update && apt install -y git && chmod +x build-cadquery-vtk-wheel.sh && ./build-cadquery-vtk-wheel.sh"
+          ${{ matrix.image }}:${{ env.VTK }} \
+          bash -c "chmod +x build-cadquery-vtk-wheel.sh && ./build-cadquery-vtk-wheel.sh"
           
       - name: Upload wheels
         if: ${{ env.SKIP != 'true' }}
