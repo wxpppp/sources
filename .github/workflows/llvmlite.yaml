@@ -11,6 +11,7 @@ on:
 
 env:
   PACKAGE: llvmlite
+  LLVM: 20.1.8
 
 jobs:
   build:
@@ -53,18 +54,6 @@ jobs:
 
           echo "VERSION=${version}" >> $GITHUB_ENV
 
-      - name: Detect llvm version
-        if: ${{ env.SKIP != 'true' }}
-        run: |
-          version=v${{ env.VERSION }}
-          llvm_version=$(curl -sSL https://raw.githubusercontent.com/numba/llvmlite/${version}/ffi/build.py \
-          | grep -Eo 'requires LLVM [0-9]+' \
-          | head -n1 \
-          | grep -Eo '[0-9]+$')
-
-          echo "llvmlite ${version} needs llvm version: ${llvm_version}"
-          echo "LLVM_VERSION=${llvm_version}" >> $GITHUB_ENV
-
       - name: Clean workspace
         if: ${{ env.SKIP != 'true' }}
         run: |
@@ -85,7 +74,7 @@ jobs:
         env:
           PIP_EXTRA_INDEX_URL: "https://lpypi.loongnix.cn/loongson/pypi/+simple"
           PIP_INDEX_URL: "https://pypi.tuna.tsinghua.edu.cn/simple"
-          CIBW_MANYLINUX_LOONGARCH64_IMAGE: "lcr.loongnix.cn/pypa/manylinux_2_38_llvm:${{ env.LLVM_VERSION }}"
+          CIBW_MANYLINUX_LOONGARCH64_IMAGE: "lcr.loongnix.cn/pypa/manylinux_2_38_llvm:${{ env.LLVM }}"
           CIBW_ARCHS: "loongarch64"
           CIBW_BUILD: "${{ matrix.python }}-${{ matrix.platform }}_loongarch64"
           CIBW_ENVIRONMENT_PASS_LINUX: |
